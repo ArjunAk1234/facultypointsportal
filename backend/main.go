@@ -72,5 +72,12 @@ func main() {
 	r.PUT("/teacher/:id", EditTeacher)
 	r.DELETE("/teacher/:id", DeleteTeacher)
 
+	//notifications
+	r.GET("/teachers/:id/notifications", GetTeacherNotifications)
+	r.PUT("/notifications/:id/read", MarkNotificationRead)
+	r.DELETE("/notifications/:id", DeleteNotification)
+	r.PUT("/teachers/:id/notifications/read-all", MarkAllNotificationsRead)
+	r.GET("/teachers/:id/notifications/count", GetNotificationCount)
+
 	r.Run(":8080")
 }

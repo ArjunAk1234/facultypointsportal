@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -97,3 +99,20 @@ type Assignment struct {
 }
 
 // Department struct
+type Notification struct {
+	ID             primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	NotificationID primitive.ObjectID `json:"notification_id" bson:"notification_id"`
+	UserID         primitive.ObjectID `json:"user_id" bson:"user_id"`
+	TeacherID      primitive.ObjectID `json:"teacher_id" bson:"teacher_id"`
+	Type           string             `json:"type" bson:"type"` // "assignment", "event_update", etc.
+	Title          string             `json:"title" bson:"title"`
+	Message        string             `json:"message" bson:"message"`
+	EventID        primitive.ObjectID `json:"event_id,omitempty" bson:"event_id,omitempty"`
+	EventName      string             `json:"event_name,omitempty" bson:"event_name,omitempty"`
+	RoleID         primitive.ObjectID `json:"role_id,omitempty" bson:"role_id,omitempty"`
+	RoleName       string             `json:"role_name,omitempty" bson:"role_name,omitempty"`
+	AssignmentID   primitive.ObjectID `json:"assignment_id,omitempty" bson:"assignment_id,omitempty"`
+	IsRead         bool               `json:"is_read" bson:"is_read"`
+	CreatedAt      time.Time          `json:"created_at" bson:"created_at"`
+	ReadAt         *time.Time         `json:"read_at,omitempty" bson:"read_at,omitempty"`
+}

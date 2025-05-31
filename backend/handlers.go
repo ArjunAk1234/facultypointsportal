@@ -10,6 +10,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -592,6 +593,19 @@ func AssignTeacherToRole(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher's assigned roles"})
 		return
 	}
+	err = createNotification(
+		assignment.TeacherID,
+		assignment.EventID,
+		assignment.RoleID,
+		assignment.ID,
+		assignment.EventName,
+		assignment.RoleName,
+		assignment.TeacherName,
+	)
+	if err != nil {
+		// Log error but don't fail the assignment
+		fmt.Printf("Failed to create notification: %v\n", err)
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"message":    "Teacher assigned to role successfully",
@@ -1026,66 +1040,6 @@ func parseEventDateTime(dateStr, timeStr string) (time.Time, error) {
 	return time.ParseInLocation("2006-01-02 15:04", combined, time.Local)
 }
 
-// func GetCurrentEvents(c *gin.Context) {
-// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-// 	defer cancel()
-
-// 	curTime := time.Now()
-
-// 	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	var events []Event
-// 	if err := cursor.All(ctx, &events); err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	var currentEvents []Event
-// 	for _, e := range events {
-// 		start, err1 := parseEventDateTime(e.StartDate, e.StartTime)
-// 		end, err2 := parseEventDateTime(e.EndDate, e.EndTime)
-// 		if err1 == nil && err2 == nil && curTime.After(start) && curTime.Before(end) {
-// 			currentEvents = append(currentEvents, e)
-// 		}
-// 	}
-
-//		c.JSON(http.StatusOK, currentEvents)
-//	}
-// func GetCurrentEvents(c *gin.Context) {
-// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-// 	defer cancel()
-
-// 	curTime := time.Now()
-
-// 	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
-// 	if err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-// 	defer cursor.Close(ctx)
-
-// 	var events []Event
-// 	if err := cursor.All(ctx, &events); err != nil {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	currentEvents := make([]Event, 0) // initialized to an empty slice
-
-// 	for _, e := range events {
-// 		start, err1 := parseEventDateTime(e.StartDate, e.StartTime)
-// 		end, err2 := parseEventDateTime(e.EndDate, e.EndTime)
-// 		if err1 == nil && err2 == nil && curTime.After(start) && curTime.Before(end) {
-// 			currentEvents = append(currentEvents, e)
-// 		}
-// 	}
-
-//		c.JSON(http.StatusOK, currentEvents)
-//	}
 func GetCurrentEvents(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -1184,45 +1138,6 @@ func GetUpcomingEvents(c *gin.Context) {
 	c.JSON(http.StatusOK, upcomingEvents)
 }
 
-// func EditTeacher(c *gin.Context) {
-// 	teacherIDStr := c.Param("id")
-// 	teacherID, err := primitive.ObjectIDFromHex(teacherIDStr)
-// 	if err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
-// 		return
-// 	}
-// 	type update1 struct {
-// 		Email string `json:"email" binding:"require"`
-// 		Name    string `json:"name" binding:"required"`
-// 		// EventID   string `json:"event_id" binding:"required"`
-// 	}
-
-// 	var updateData Teacher
-// 	if err := c.ShouldBindJSON(&updateData); err != nil {
-// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-// 		return
-// 	}
-
-// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-// 	defer cancel()
-
-// 	update := bson.M{
-// 		"$set": bson.M{
-// 			"name":  updateData.Name,
-// 			"email": updateData.Email,
-// 			// Add other fields you allow to update
-// 		},
-// 	}
-
-// 	collection := db.Collection(teacherCollection)
-// 	result, err := collection.UpdateOne(ctx, bson.M{"_id": teacherID}, update)
-// 	if err != nil || result.MatchedCount == 0 {
-// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher or teacher not found"})
-// 		return
-// 	}
-
-//		c.JSON(http.StatusOK, gin.H{"message": "Teacher updated successfully"})
-//	}
 func EditTeacher(c *gin.Context) {
 	teacherIDStr := c.Param("id")
 	teacherID, err := primitive.ObjectIDFromHex(teacherIDStr)
@@ -1327,4 +1242,209 @@ func DeleteTeacher(c *gin.Context) {
 	_, _ = userColl.DeleteOne(ctx, bson.M{"_id": teacherID})
 
 	c.JSON(http.StatusOK, gin.H{"message": "Teacher and related references deleted successfully"})
+}
+
+//notification system
+
+func createNotification(teacherID, eventID, roleID, assignmentID primitive.ObjectID, eventName, roleName, teacherName string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	notification := Notification{
+		ID:             primitive.NewObjectID(),
+		NotificationID: primitive.NewObjectID(),
+		TeacherID:      teacherID,
+		UserID:         teacherID, // Assuming teacher_id is same as user_id
+		Type:           "assignment",
+		Title:          "New Role Assignment",
+		Message:        fmt.Sprintf("You have been assigned to the role '%s' in event '%s'", roleName, eventName),
+		EventID:        eventID,
+		EventName:      eventName,
+		RoleID:         roleID,
+		RoleName:       roleName,
+		AssignmentID:   assignmentID,
+		IsRead:         false,
+		CreatedAt:      time.Now(),
+	}
+
+	collection := db.Collection("notifications")
+	_, err := collection.InsertOne(ctx, notification)
+	return err
+}
+
+//notifications
+
+func GetTeacherNotifications(c *gin.Context) {
+	teacherID := c.Param("id")
+	objectID, err := primitive.ObjectIDFromHex(teacherID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := db.Collection("notifications")
+	showRead := c.DefaultQuery("show_read", "true") == "true"
+
+	filter := bson.M{"teacher_id": objectID}
+	if !showRead {
+		filter["is_read"] = false
+	}
+
+	cursor, err := collection.Find(ctx, filter, options.Find().SetSort(bson.D{{"created_at", -1}}))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var notifications []Notification
+	if err := cursor.All(ctx, &notifications); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if notifications == nil {
+		c.JSON(http.StatusOK, []Notification{})
+		return
+	}
+	c.JSON(http.StatusOK, notifications)
+}
+
+// Mark notification as read
+func MarkNotificationRead(c *gin.Context) {
+	notificationID := c.Param("id")
+	objectID, err := primitive.ObjectIDFromHex(notificationID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification ID"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := db.Collection("notifications")
+	now := time.Now()
+
+	update := bson.M{
+		"$set": bson.M{
+			"is_read": true,
+			"read_at": &now,
+		},
+	}
+
+	result, err := collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if result.MatchedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Notification marked as read"})
+}
+
+// Delete notification
+func DeleteNotification(c *gin.Context) {
+	notificationID := c.Param("id")
+	objectID, err := primitive.ObjectIDFromHex(notificationID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification ID"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := db.Collection("notifications")
+	result, err := collection.DeleteOne(ctx, bson.M{"_id": objectID})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	if result.DeletedCount == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Notification deleted successfully"})
+}
+
+// Mark all notifications as read for a teacher
+func MarkAllNotificationsRead(c *gin.Context) {
+	teacherID := c.Param("id")
+	objectID, err := primitive.ObjectIDFromHex(teacherID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := db.Collection("notifications")
+	now := time.Now()
+
+	update := bson.M{
+		"$set": bson.M{
+			"is_read": true,
+			"read_at": &now,
+		},
+	}
+
+	filter := bson.M{
+		"teacher_id": objectID,
+		"is_read":    false,
+	}
+
+	result, err := collection.UpdateMany(ctx, filter, update)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message":       "All notifications marked as read",
+		"updated_count": result.ModifiedCount,
+	})
+}
+
+// Get notification count for a teacher
+func GetNotificationCount(c *gin.Context) {
+	teacherID := c.Param("id")
+	objectID, err := primitive.ObjectIDFromHex(teacherID)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	collection := db.Collection("notifications")
+	totalCount, err := collection.CountDocuments(ctx, bson.M{"teacher_id": objectID})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	unreadCount, err := collection.CountDocuments(ctx, bson.M{
+		"teacher_id": objectID,
+		"is_read":    false,
+	})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"total_count":  totalCount,
+		"unread_count": unreadCount,
+	})
 }

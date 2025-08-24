@@ -86,9 +86,23 @@ type Role struct {
 }
 
 // Assignment struct
+//
+//	type Assignment struct {
+//		ID           primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
+//		AssignmentID primitive.ObjectID `json:"assignmentid,omitempty" bson:"assignmentid,omitempty"`
+//		EventID      primitive.ObjectID `json:"event_id" bson:"event_id"`
+//		EventName    string             `json:"eventname" bson:"eventname"`
+//		TeacherID    primitive.ObjectID `json:"teacher_id" bson:"teacher_id"`
+//		RoleID       primitive.ObjectID `json:"role_id" bson:"role_id"`
+//		RoleName     string             `json:"rolename" bson:"rolename"`
+//		TeacherName  string             `json:"teachername" bson:"teachername"`
+//		TeacherEmail string             `json:"teacheremail" bson:"teacheremail"`
+//	}
+//
+// In your models.go file
 type Assignment struct {
-	ID           primitive.ObjectID `json:"id,omitempty" bson:"_id,omitempty"`
-	AssignmentID primitive.ObjectID `json:"assignmentid,omitempty" bson:"assignmentid,omitempty"`
+	ID           primitive.ObjectID `json:"id" bson:"_id"`
+	AssignmentID primitive.ObjectID `json:"assignment_id" bson:"assignment_id,omitempty"`
 	EventID      primitive.ObjectID `json:"event_id" bson:"event_id"`
 	EventName    string             `json:"eventname" bson:"eventname"`
 	TeacherID    primitive.ObjectID `json:"teacher_id" bson:"teacher_id"`
@@ -96,9 +110,9 @@ type Assignment struct {
 	RoleName     string             `json:"rolename" bson:"rolename"`
 	TeacherName  string             `json:"teachername" bson:"teachername"`
 	TeacherEmail string             `json:"teacheremail" bson:"teacheremail"`
+	// ADD THIS LINE: Use a pointer to distinguish between not set (nil) and set to 0.
+	PointsAwarded *int `json:"points_awarded,omitempty" bson:"points_awarded,omitempty"`
 }
-
-// Department struct
 type Notification struct {
 	ID             primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	NotificationID primitive.ObjectID `json:"notification_id" bson:"notification_id"`

@@ -28,8 +28,10 @@ const Login = () => {
       if (response.status === 200) {
         // const token = response.data.token;
         const role = response.data.role; // 👈 Get role from response
+        const name = response.data.name;
         const userid=response.data.user_id
         alert(role)
+        alert(userid)
         if ( !role) {
           throw new Error("Invalid login response: missing token or role");
         }
@@ -37,7 +39,7 @@ const Login = () => {
         login(null, { email, role }); // Call AuthContext login to save token and user info
         
         if (role==='faculty'){
-        login(null, { email, role,userid });
+        login(null, { email, role,userid,name });
         sessionStorage.setItem('userid',userid)
         }
        

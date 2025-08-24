@@ -1,12 +1,3596 @@
+// // package main
+
+// // import (
+// // 	"context"
+// // 	"encoding/csv"
+// // 	"fmt"
+// // 	"net/http"
+// // 	"strconv"
+// // 	"time"
+
+// // 	"github.com/gin-gonic/gin"
+// // 	"go.mongodb.org/mongo-driver/bson"
+// // 	"go.mongodb.org/mongo-driver/bson/primitive"
+// // 	"go.mongodb.org/mongo-driver/mongo"
+// // 	"go.mongodb.org/mongo-driver/mongo/options"
+// // 	"golang.org/x/crypto/bcrypt"
+// // )
+
+// // func Signup(c *gin.Context) {
+// // 	var user User
+// // 	if err := c.ShouldBindJSON(&user); err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// // 		return
+// // 	}
+
+// // 	// if user.Role != "admin" && user.Role != "teacher" {
+// // 	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role"})
+// // 	// 	return
+// // 	// }
+// // 	user.Role = "faculty"
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	userCollectionRef := db.Collection(userCollection)
+// // 	teacherCollectionRef := db.Collection(teacherCollection)
+
+// // 	// Check if email already exists in users
+// // 	count, err := userCollectionRef.CountDocuments(ctx, bson.M{"email": user.Email})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+// // 		return
+// // 	}
+// // 	if count > 0 {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email already in use"})
+// // 		return
+// // 	}
+
+// // 	// Check if a teacher exists with the same email
+// // 	var existingTeacher Teacher
+// // 	err = teacherCollectionRef.FindOne(ctx, bson.M{"email": user.Email}).Decode(&existingTeacher)
+// // 	if err == nil {
+// // 		// Teacher found, use Teacher's UserID as the new User's _id
+// // 		user.ID = existingTeacher.UserID
+// // 		user.UserID = existingTeacher.UserID
+// // 	} else {
+// // 		// No matching teacher, generate new ObjectID
+// // 		user.ID = primitive.NewObjectID()
+// // 		user.UserID = user.ID
+// // 	}
+
+// // 	// Hash password
+// // 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+// // 		return
+// // 	}
+// // 	user.Password = string(hashedPassword)
+
+// // 	// Insert user with assigned ID
+// // 	_, err = userCollectionRef.InsertOne(ctx, user)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusCreated, gin.H{
+// // 		"message": "User created successfully",
+// // 		"user_id": user.ID,
+// // 	})
+// // }
+
+// // // Login handler
+// // func Login(c *gin.Context) {
+// // 	type LoginRequest struct {
+// // 		Email    string `json:"email"`
+// // 		Password string `json:"password"`
+// // 	}
+
+// // 	type LoginResponse struct {
+// // 		Message string             `json:"message"`
+// // 		Role    string             `json:"role,omitempty"`
+// // 		Name    string             `json:"name,omitempty"`
+// // 		UserID  primitive.ObjectID `json:"user_id,omitempty" bson:"user_id,omitempty"`
+// // 	}
+
+// // 	var req LoginRequest
+// // 	if err := c.ShouldBindJSON(&req); err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	var user User
+// // 	collection := db.Collection(userCollection)
+// // 	err := collection.FindOne(ctx, bson.M{"email": req.Email}).Decode(&user)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+// // 		return
+// // 	}
+
+// // 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+// // 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, LoginResponse{
+// // 		Message: "Login successful",
+// // 		Name:    user.Name,
+// // 		Role:    user.Role,
+// // 		UserID:  user.UserID,
+// // 	})
+// // }
+
+// // // CreateEvent handler
+// // func CreateEvent(c *gin.Context) {
+// // 	var event Event
+// // 	if err := c.ShouldBindJSON(&event); err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection(eventCollection)
+// // 	event.ID = primitive.NewObjectID()
+// // 	event.EventID = event.ID
+// // 	_, err := collection.InsertOne(ctx, event)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, event)
+// // }
+
+// // // ListEvents handler
+// // func ListEvents(c *gin.Context) {
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection(eventCollection)
+// // 	cursor, err := collection.Find(ctx, bson.M{})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	var events []Event
+// // 	if err := cursor.All(ctx, &events); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, events)
+// // }
+
+// // // GetEventByID handler
+// // func GetEventByID(c *gin.Context) {
+// // 	id := c.Param("id")
+// // 	objectID, err := primitive.ObjectIDFromHex(id)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection(eventCollection)
+// // 	var event Event
+// // 	err = collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&event)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, event)
+// // }
+
+// // // UpdateEvent handler
+// // func UpdateEvent(c *gin.Context) {
+// // 	id := c.Param("id")
+// // 	objectID, err := primitive.ObjectIDFromHex(id)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+// // 		return
+// // 	}
+
+// // 	var event Event
+// // 	if err := c.ShouldBindJSON(&event); err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection(eventCollection)
+// // 	update := bson.M{
+// // 		"$set": bson.M{
+// // 			"name":        event.Name,
+// // 			"start_date":  event.StartDate,
+// // 			"start_time":  event.StartTime,
+// // 			"end_date":    event.EndDate,
+// // 			"end_time":    event.EndTime,
+// // 			"description": event.Description,
+// // 		},
+// // 	}
+
+// // 	_, err = collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, gin.H{"message": "Event updated successfully"})
+// // }
+
+// // func GetTopTeachers(c *gin.Context) {
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// // 	defer cancel()
+
+// // 	// MongoDB aggregation pipeline to get top teachers
+// // 	pipeline := mongo.Pipeline{
+// // 		{
+// // 			{"$lookup", bson.M{
+// // 				"from":         teacherAssignmentCollection,
+// // 				"localField":   "_id",
+// // 				"foreignField": "teacher_id",
+// // 				"as":           "assignments",
+// // 			}},
+// // 		},
+// // 		{
+// // 			{"$unwind", bson.M{
+// // 				"path":                       "$assignments",
+// // 				"preserveNullAndEmptyArrays": true,
+// // 			}},
+// // 		},
+// // 		{
+// // 			{"$lookup", bson.M{
+// // 				"from":         roleCollection,
+// // 				"localField":   "assignments.role_id",
+// // 				"foreignField": "_id",
+// // 				"as":           "role",
+// // 			}},
+// // 		},
+// // 		{
+// // 			{"$unwind", bson.M{
+// // 				"path":                       "$role",
+// // 				"preserveNullAndEmptyArrays": true,
+// // 			}},
+// // 		},
+// // 		{
+// // 			{"$group", bson.M{
+// // 				"_id":          "$_id",
+// // 				"teacher_name": bson.M{"$first": "$name"},
+// // 				"total_points": bson.M{"$sum": bson.M{
+// // 					"$ifNull": []interface{}{"$role.point", 0},
+// // 				}},
+// // 			}},
+// // 		},
+// // 		{
+// // 			{"$sort", bson.M{"total_points": -1}},
+// // 		},
+// // 		{
+// // 			{"$limit", 10},
+// // 		},
+// // 	}
+
+// // 	collection := db.Collection(teacherCollection)
+// // 	cursor, err := collection.Aggregate(ctx, pipeline)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	type TopTeacher struct {
+// // 		ID     primitive.ObjectID `json:"teacher_id" bson:"_id"`
+// // 		Name   string             `json:"teacher_name" bson:"teacher_name"`
+// // 		Points int                `json:"points" bson:"total_points"`
+// // 	}
+
+// // 	var teachers []TopTeacher
+// // 	if err := cursor.All(ctx, &teachers); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, teachers)
+// // }
+
+// // func CreateRole(c *gin.Context) {
+// // 	eventID := c.Param("eventid")
+
+// // 	var role Role
+// // 	if err := c.ShouldBindJSON(&role); err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	// Convert eventID string param to ObjectID
+// // 	oid, err := primitive.ObjectIDFromHex(eventID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	roleCollection := db.Collection("roles")
+// // 	eventCollection := db.Collection("events")
+
+// // 	// Retrieve the Event document to get event name BEFORE inserting role
+// // 	var event Event
+// // 	err = eventCollection.FindOne(ctx, bson.M{"_id": oid}).Decode(&event)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+// // 		return
+// // 	}
+
+// // 	// Assign all fields before inserting
+// // 	role.ID = primitive.NewObjectID()
+// // 	role.EventID = oid
+// // 	role.EventName = event.Name // <- now it will get saved
+// // 	role.RoleID = role.ID
+
+// // 	// Insert the new role document into roles collection
+// // 	_, err = roleCollection.InsertOne(ctx, role)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert role: " + err.Error()})
+// // 		return
+// // 	}
+
+// // 	// Update the event document: push role object with id and name to the roles array
+// // 	update := bson.M{
+// // 		"$push": bson.M{
+// // 			"roles": bson.M{
+// // 				"id":   role.ID,
+// // 				"name": role.Name,
+// // 			},
+// // 		},
+// // 	}
+// // 	_, err = eventCollection.UpdateOne(ctx, bson.M{"_id": oid}, update)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update event with role: " + err.Error()})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, role)
+// // }
+
+// // func CreateTeacher(c *gin.Context) {
+// // 	var teacher Teacher
+// // 	if err := c.ShouldBindJSON(&teacher); err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection(teacherCollection)
+// // 	teacher.ID = primitive.NewObjectID()
+// // 	teacher.UserID = teacher.ID
+// // 	_, err := collection.InsertOne(ctx, teacher)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	// Update user if email matches
+// // 	userCollectionRef := db.Collection(userCollection)
+// // 	filter := bson.M{"email": teacher.Email}
+// // 	update := bson.M{"$set": bson.M{"user_id": teacher.ID}} // Add new field
+// // 	_, _ = userCollectionRef.UpdateOne(ctx, filter, update)
+
+// // 	userCollectionRef1 := db.Collection(userCollection)
+// // 	filter1 := bson.M{"email": teacher.Email}
+// // 	update1 := bson.M{"$set": bson.M{"_id": teacher.ID}} // Add new field
+// // 	_, _ = userCollectionRef1.UpdateOne(ctx, filter1, update1)
+
+// // 	c.JSON(http.StatusOK, teacher)
+// // }
+
+// // // ListTeachers handler
+// // func ListTeachers(c *gin.Context) {
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	// MongoDB aggregation pipeline to get teachers with department info
+// // 	pipeline := mongo.Pipeline{
+// // 		{
+// // 			{"$lookup", bson.M{
+// // 				"from":         departmentCollection,
+// // 				"localField":   "department_id",
+// // 				"foreignField": "_id",
+// // 				"as":           "department",
+// // 			}},
+// // 		},
+// // 		{
+// // 			{"$unwind", bson.M{
+// // 				"path":                       "$department",
+// // 				"preserveNullAndEmptyArrays": true,
+// // 			}},
+// // 		},
+// // 		{
+// // 			{"$project", bson.M{
+// // 				"_id":             1,
+// // 				"name":            1,
+// // 				"email":           1,
+// // 				"profile_photo":   1,
+// // 				"point":           1,
+// // 				"department_name": "$departmentname",
+// // 			}},
+// // 		},
+// // 	}
+
+// // 	collection := db.Collection(teacherCollection)
+// // 	cursor, err := collection.Aggregate(ctx, pipeline)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	type TeacherWithDepartment struct {
+// // 		ID             primitive.ObjectID `json:"id" bson:"_id"`
+// // 		Name           string             `json:"name" bson:"name"`
+// // 		Email          string             `json:"email" bson:"email"`
+// // 		ProfilePhoto   string             `json:"profile_photo" bson:"profile_photo"`
+// // 		DepartmentName string             `json:"department_name" bson:"department_name"`
+// // 		Point          int                `json:"point" bson:"point"`
+// // 	}
+
+// // 	var teachers []TeacherWithDepartment
+// // 	if err := cursor.All(ctx, &teachers); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, teachers)
+// // }
+
+// // // AssignTeacherToRole assigns a teacher to a role and updates their points
+// // func AssignTeacherToRole(c *gin.Context) {
+// // 	type AssignmentRequest struct {
+// // 		TeacherID string `json:"teacher_id" binding:"required"`
+// // 		RoleID    string `json:"role_id" binding:"required"`
+// // 		EventID   string `json:"event_id" binding:"required"`
+// // 	}
+
+// // 	var req AssignmentRequest
+// // 	if err := c.ShouldBindJSON(&req); err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	// Convert string IDs to ObjectIDs
+// // 	teacherID, err := primitive.ObjectIDFromHex(req.TeacherID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID format"})
+// // 		return
+// // 	}
+
+// // 	roleID, err := primitive.ObjectIDFromHex(req.RoleID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID format"})
+// // 		return
+// // 	}
+
+// // 	eventID, err := primitive.ObjectIDFromHex(req.EventID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// // 		return
+// // 	}
+
+// // 	// Get the role details to obtain points and event name
+// // 	roleCollection := db.Collection(roleCollection)
+// // 	var role Role
+// // 	err = roleCollection.FindOne(ctx, bson.M{"_id": roleID}).Decode(&role)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusNotFound, gin.H{"error": "Role not found"})
+// // 		return
+// // 	}
+
+// // 	// Get the event name
+// // 	eventCollection := db.Collection(eventCollection)
+// // 	var event Event
+// // 	err = eventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&event)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+// // 		return
+// // 	}
+
+// // 	// Check if the teacher exists
+// // 	teacherCollection := db.Collection(teacherCollection)
+// // 	var teacher Teacher
+// // 	err = teacherCollection.FindOne(ctx, bson.M{"_id": teacherID}).Decode(&teacher)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusNotFound, gin.H{"error": "Teacher not found"})
+// // 		return
+// // 	}
+
+// // 	// Check if this assignment already exists
+// // 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+// // 	count, err := assignmentCollection.CountDocuments(ctx, bson.M{
+// // 		"teacher_id": teacherID,
+// // 		"role_id":    roleID,
+// // 		"event_id":   eventID,
+// // 	})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+// // 		return
+// // 	}
+// // 	if count > 0 {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Teacher is already assigned to this role in this event"})
+// // 		return
+// // 	}
+
+// // 	// Check if the role has reached its head count limit
+// // 	assignedCount, err := assignmentCollection.CountDocuments(ctx, bson.M{"role_id": roleID})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+// // 		return
+// // 	}
+// // 	if int(assignedCount) >= role.HeadCount {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Role has reached its maximum head count"})
+// // 		return
+// // 	}
+// // 	id := primitive.NewObjectID()
+// // 	// Create the assignment using the exact Assignment struct
+// // 	assignment := Assignment{
+// // 		ID:           id,
+// // 		AssignmentID: id,
+// // 		EventID:      eventID,
+// // 		EventName:    event.Name,
+// // 		TeacherID:    teacherID,
+// // 		RoleID:       roleID,
+// // 		RoleName:     role.Name,
+// // 		TeacherName:  teacher.Name,
+// // 		TeacherEmail: teacher.Email,
+// // 	}
+
+// // 	_, err = assignmentCollection.InsertOne(ctx, assignment)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create assignment"})
+// // 		return
+// // 	}
+
+// // 	// Update teacher's points
+// // 	_, err = teacherCollection.UpdateOne(
+// // 		ctx,
+// // 		bson.M{"_id": teacherID},
+// // 		bson.M{"$inc": bson.M{"point": role.Point}},
+// // 	)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher points"})
+// // 		return
+// // 	}
+
+// // 	// Add role reference to teacher's Assginedteachers array using the RoleRef struct
+// // 	roleRef := RoleRef1{
+// // 		ID:            roleID,
+// // 		RoleName:      role.Name,
+// // 		TeacherleName: teacher.Name,
+// // 		Assignment_ID: assignment.ID,
+// // 	}
+
+// // 	_, err = eventCollection.UpdateOne(
+// // 		ctx,
+// // 		bson.M{"_id": eventID},
+// // 		bson.M{"$push": bson.M{"assginedteachers": roleRef}},
+// // 	)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher's assigned roles"})
+// // 		return
+// // 	}
+// // 	err = createNotification(
+// // 		assignment.TeacherID,
+// // 		assignment.EventID,
+// // 		assignment.RoleID,
+// // 		assignment.ID,
+// // 		assignment.EventName,
+// // 		assignment.RoleName,
+// // 		assignment.TeacherName,
+// // 	)
+// // 	if err != nil {
+// // 		// Log error but don't fail the assignment
+// // 		fmt.Printf("Failed to create notification: %v\n", err)
+// // 	}
+
+// // 	c.JSON(http.StatusOK, gin.H{
+// // 		"message":    "Teacher assigned to role successfully",
+// // 		"assignment": assignment,
+// // 	})
+// // }
+
+// // // DeleteRoleAssignment removes a teacher's role assignment with optional point handling
+// // func DeleteRoleAssignment(c *gin.Context) {
+// // 	type DeleteAssignmentRequest struct {
+// // 		AssignmentID string `json:"assignment_id" binding:"required"`
+// // 		DeductPoints bool   `json:"deduct_points"` // Whether to deduct points from teacher
+// // 	}
+
+// // 	var req DeleteAssignmentRequest
+// // 	if err := c.ShouldBindJSON(&req); err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// // 		return
+// // 	}
+
+// // 	assignmentID, err := primitive.ObjectIDFromHex(req.AssignmentID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid assignment ID format"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	// Find the assignment first to get the role ID and teacher ID
+// // 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+// // 	var assignment Assignment
+// // 	err = assignmentCollection.FindOne(ctx, bson.M{"_id": assignmentID}).Decode(&assignment)
+// // 	if err != nil {
+// // 		if err == mongo.ErrNoDocuments {
+// // 			c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
+// // 		} else {
+// // 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+// // 		}
+// // 		return
+// // 	}
+
+// // 	// If we need to deduct points, we need to get the role's point value
+// // 	if req.DeductPoints {
+// // 		// Get the role to determine how many points to deduct
+// // 		roleCollection := db.Collection(roleCollection)
+// // 		var role Role
+// // 		err = roleCollection.FindOne(ctx, bson.M{"_id": assignment.RoleID}).Decode(&role)
+// // 		if err != nil {
+// // 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Role not found"})
+// // 			return
+// // 		}
+
+// // 		// Deduct points from the teacher
+// // 		teacherCollection := db.Collection(teacherCollection)
+// // 		_, err = teacherCollection.UpdateOne(
+// // 			ctx,
+// // 			bson.M{"_id": assignment.TeacherID},
+// // 			bson.M{"$inc": bson.M{"point": -role.Point}},
+// // 		)
+// // 		if err != nil {
+// // 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher points"})
+// // 			return
+// // 		}
+// // 	}
+
+// // 	// Remove the role reference from teacher's assginedteachers array
+// // 	// Match using the exact field name from the Teacher struct
+// // 	eventCollection := db.Collection(eventCollection)
+// // 	_, err = eventCollection.UpdateOne(
+// // 		ctx,
+// // 		bson.M{"_id": assignment.TeacherID},
+// // 		bson.M{"$pull": bson.M{"assginedteachers": bson.M{"id": assignment.RoleID}}},
+// // 	)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher's assigned roles"})
+// // 		return
+// // 	}
+
+// // 	// Delete the assignment
+// // 	_, err = assignmentCollection.DeleteOne(ctx, bson.M{"_id": assignmentID})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete assignment"})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, gin.H{
+// // 		"message":         "Role assignment deleted successfully",
+// // 		"deducted_points": req.DeductPoints,
+// // 	})
+// // }
+
+// // // GetTeacherAssignments retrieves all role assignments for a specific teacher
+// // func GetTeacherAssignments(c *gin.Context) {
+// // 	teacherID := c.Param("id")
+// // 	objectID, err := primitive.ObjectIDFromHex(teacherID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID format"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection(teacherAssignmentCollection)
+// // 	cursor, err := collection.Find(ctx, bson.M{"teacher_id": objectID})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	var assignments []Assignment
+// // 	if err := cursor.All(ctx, &assignments); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	if len(assignments) == 0 {
+// // 		c.JSON(http.StatusOK, []Assignment{})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, assignments)
+// // }
+
+// // // GetRoleAssignments retrieves all teacher assignments for a specific role
+// // func GetRoleAssignments(c *gin.Context) {
+// // 	roleID := c.Param("id")
+// // 	objectID, err := primitive.ObjectIDFromHex(roleID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID format"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection(teacherAssignmentCollection)
+// // 	cursor, err := collection.Find(ctx, bson.M{"role_id": objectID})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	var assignments []Assignment
+// // 	if err := cursor.All(ctx, &assignments); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, assignments)
+// // }
+
+// // //
+
+// // func DeleteEvent(c *gin.Context) {
+// // 	type DeleteEventRequest struct {
+// // 		EventID      string `json:"event_id" binding:"required"`
+// // 		DeductPoints bool   `json:"deduct_points"` // Whether to deduct points from teachers
+// // 	}
+
+// // 	var req DeleteEventRequest
+// // 	if err := c.ShouldBindJSON(&req); err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// // 		return
+// // 	}
+
+// // 	eventID, err := primitive.ObjectIDFromHex(req.EventID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// // 	defer cancel()
+
+// // 	// Get the event details to confirm it exists
+// // 	eventCollection := db.Collection(eventCollection)
+// // 	var event Event
+// // 	err = eventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&event)
+// // 	if err != nil {
+// // 		if err == mongo.ErrNoDocuments {
+// // 			c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+// // 		} else {
+// // 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+// // 		}
+// // 		return
+// // 	}
+
+// // 	// Find all roles associated with the event
+// // 	roleCollection := db.Collection(roleCollection)
+// // 	roleCursor, err := roleCollection.Find(ctx, bson.M{"event_id": eventID})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query roles"})
+// // 		return
+// // 	}
+// // 	defer roleCursor.Close(ctx)
+
+// // 	var roles []Role
+// // 	if err := roleCursor.All(ctx, &roles); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse roles"})
+// // 		return
+// // 	}
+
+// // 	// Process teacher assignments for each role
+// // 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+// // 	teacherCollection := db.Collection(teacherCollection)
+
+// // 	for _, role := range roles {
+// // 		// Find all assignments for this role
+// // 		assignmentCursor, err := assignmentCollection.Find(ctx, bson.M{"role_id": role.ID})
+// // 		if err != nil {
+// // 			continue // Skip if error
+// // 		}
+
+// // 		var assignments []Assignment
+// // 		if err := assignmentCursor.All(ctx, &assignments); err != nil {
+// // 			assignmentCursor.Close(ctx)
+// // 			continue // Skip if error
+// // 		}
+// // 		assignmentCursor.Close(ctx)
+
+// // 		// If deducting points is requested, update each teacher's points
+// // 		if req.DeductPoints {
+// // 			for _, assignment := range assignments {
+// // 				_, _ = teacherCollection.UpdateOne(
+// // 					ctx,
+// // 					bson.M{"_id": assignment.TeacherID},
+// // 					bson.M{"$inc": bson.M{"point": -role.Point}},
+// // 				)
+
+// // 				// Remove role reference from event's assginedteachers array
+// // 				_, _ = eventCollection.UpdateOne(
+// // 					ctx,
+// // 					bson.M{"_id": eventID},
+// // 					bson.M{"$pull": bson.M{"assginedteachers": bson.M{"assignment_id": assignment.ID}}},
+// // 				)
+// // 			}
+// // 		}
+
+// // 		// Delete all assignments for this role
+// // 		_, _ = assignmentCollection.DeleteMany(ctx, bson.M{"role_id": role.ID})
+// // 	}
+
+// // 	// Delete all roles associated with the event
+// // 	_, err = roleCollection.DeleteMany(ctx, bson.M{"event_id": eventID})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete roles"})
+// // 		return
+// // 	}
+
+// // 	// Finally delete the event itself
+// // 	_, err = eventCollection.DeleteOne(ctx, bson.M{"_id": eventID})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete event"})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, gin.H{
+// // 		"message":         "Event and all associated data deleted successfully",
+// // 		"deducted_points": req.DeductPoints,
+// // 		"event_name":      event.Name,
+// // 	})
+// // }
+
+// // // GetRolesByEventID retrieves all roles for a specific event
+// // func GetRolesByEventID(c *gin.Context) {
+// // 	eventID := c.Param("id")
+// // 	objectID, err := primitive.ObjectIDFromHex(eventID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	roleCollection := db.Collection(roleCollection)
+// // 	cursor, err := roleCollection.Find(ctx, bson.M{"event_id": objectID})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	var roles []Role
+// // 	if err := cursor.All(ctx, &roles); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, roles)
+// // }
+
+// // // GetTeacherRolesInEvent retrieves all roles assigned to a teacher in a specific event
+// // func GetTeacherRolesInEvent(c *gin.Context) {
+// // 	teacherID := c.Param("teacherid")
+// // 	eventID := c.Param("eventid")
+
+// // 	teacherObjID, err := primitive.ObjectIDFromHex(teacherID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID format"})
+// // 		return
+// // 	}
+
+// // 	eventObjID, err := primitive.ObjectIDFromHex(eventID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	// Find all assignments for this teacher in this event
+// // 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+
+// // 	// MongoDB aggregation pipeline to get detailed role information
+// // 	pipeline := mongo.Pipeline{
+// // 		{
+// // 			{"$match", bson.M{
+// // 				"teacher_id": teacherObjID,
+// // 				"event_id":   eventObjID,
+// // 			}},
+// // 		},
+// // 		{
+// // 			{"$lookup", bson.M{
+// // 				"from":         roleCollection,
+// // 				"localField":   "role_id",
+// // 				"foreignField": "_id",
+// // 				"as":           "role_details",
+// // 			}},
+// // 		},
+// // 		{
+// // 			{"$unwind", bson.M{
+// // 				"path":                       "$role_details",
+// // 				"preserveNullAndEmptyArrays": false,
+// // 			}},
+// // 		},
+// // 		{
+// // 			{"$project", bson.M{
+// // 				"_id":              1,
+// // 				"event_id":         1,
+// // 				"event_name":       "$eventname",
+// // 				"teacher_id":       1,
+// // 				"role_id":          1,
+// // 				"role_name":        "$role_details.name",
+// // 				"role_description": "$role_details.description",
+// // 				"role_point":       "$role_details.point",
+// // 			}},
+// // 		},
+// // 	}
+
+// // 	cursor, err := assignmentCollection.Aggregate(ctx, pipeline)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	type TeacherRoleAssignment struct {
+// // 		ID              primitive.ObjectID `json:"id" bson:"_id"`
+// // 		EventID         primitive.ObjectID `json:"event_id" bson:"event_id"`
+// // 		EventName       string             `json:"event_name" bson:"event_name"`
+// // 		TeacherID       primitive.ObjectID `json:"teacher_id" bson:"teacher_id"`
+// // 		RoleID          primitive.ObjectID `json:"role_id" bson:"role_id"`
+// // 		RoleName        string             `json:"role_name" bson:"role_name"`
+// // 		RoleDescription string             `json:"role_description" bson:"role_description"`
+// // 		RolePoint       int                `json:"role_point" bson:"role_point"`
+// // 	}
+
+// // 	var assignments []TeacherRoleAssignment
+// // 	if err := cursor.All(ctx, &assignments); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, assignments)
+// // }
+
+// // func GetAssignedTeachersForEvent(c *gin.Context) {
+// // 	eventIDParam := c.Param("eventid")
+// // 	eventID, err := primitive.ObjectIDFromHex(eventIDParam)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	// Ensure you're using the correct collection name
+// // 	assignmentCollection := db.Collection("teacherAssignments") // Make sure this matches insert function
+
+// // 	// Debug log to confirm which ID is being queried
+// // 	fmt.Println("Fetching assignments for Event ID:", eventID.Hex())
+
+// // 	// Query assignments with matching event_id
+// // 	filter := bson.M{"event_id": eventID}
+// // 	cursor, err := assignmentCollection.Find(ctx, filter)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch assignments"})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	var assignments []Assignment
+// // 	if err = cursor.All(ctx, &assignments); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode assignments"})
+// // 		return
+// // 	}
+
+// // 	// Log how many results were found
+// // 	fmt.Printf("Found %d assignments for event\n", len(assignments))
+
+// // 	if len(assignments) == 0 {
+// // 		c.JSON(http.StatusOK, []Assignment{})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, assignments)
+// // }
+
+// // //	func parseEventDateTime(dateStr, timeStr string) (time.Time, error) {
+// // //		layout := "2006-01-02 15:04" // Date + 24h time
+// // //		return time.Parse(layout, fmt.Sprintf("%s %s", dateStr, timeStr))
+// // //	}
+// // func parseEventDateTime(dateStr, timeStr string) (time.Time, error) {
+// // 	combined := dateStr + " " + timeStr
+// // 	return time.ParseInLocation("2006-01-02 15:04", combined, time.Local)
+// // }
+
+// // func GetCurrentEvents(c *gin.Context) {
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	curTime := time.Now()
+
+// // 	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch events: " + err.Error()})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	var events []Event
+// // 	if err := cursor.All(ctx, &events); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse events: " + err.Error()})
+// // 		return
+// // 	}
+
+// // 	currentEvents := make([]Event, 0) // Ensures JSON returns [] not null
+
+// // 	for _, e := range events {
+// // 		start, err1 := parseEventDateTime(e.StartDate, e.StartTime)
+// // 		end, err2 := parseEventDateTime(e.EndDate, e.EndTime)
+
+// // 		if err1 != nil || err2 != nil {
+// // 			continue // skip malformed date/time entries
+// // 		}
+
+// // 		if curTime.After(start) && curTime.Before(end) {
+// // 			currentEvents = append(currentEvents, e)
+// // 		}
+// // 	}
+
+// // 	c.JSON(http.StatusOK, currentEvents)
+// // }
+
+// // func GetPastEvents(c *gin.Context) {
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	curTime := time.Now()
+
+// // 	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	var events []Event
+// // 	if err := cursor.All(ctx, &events); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	var pastEvents []Event
+// // 	for _, e := range events {
+// // 		end, err := parseEventDateTime(e.EndDate, e.EndTime)
+// // 		if err == nil && curTime.After(end) {
+// // 			pastEvents = append(pastEvents, e)
+// // 		}
+// // 	}
+
+// // 	c.JSON(http.StatusOK, pastEvents)
+// // }
+
+// // func GetUpcomingEvents(c *gin.Context) {
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	curTime := time.Now()
+
+// // 	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	var events []Event
+// // 	if err := cursor.All(ctx, &events); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	var upcomingEvents []Event
+// // 	for _, e := range events {
+// // 		start, err := parseEventDateTime(e.StartDate, e.StartTime)
+// // 		if err == nil && curTime.Before(start) {
+// // 			upcomingEvents = append(upcomingEvents, e)
+// // 		}
+// // 	}
+// // 	if upcomingEvents == nil {
+// // 		upcomingEvents = []Event{} // or whatever your struct type is
+// // 	}
+
+// // 	c.JSON(http.StatusOK, upcomingEvents)
+// // }
+
+// // func EditTeacher(c *gin.Context) {
+// // 	teacherIDStr := c.Param("id")
+// // 	teacherID, err := primitive.ObjectIDFromHex(teacherIDStr)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// // 		return
+// // 	}
+
+// // 	// Optional fields struct
+// // 	type update1 struct {
+// // 		Name           string `json:"name"`
+// // 		Email          string `json:"email"`
+// // 		DepartmentName string `json:"departmentname"`
+// // 	}
+
+// // 	var updateData update1
+// // 	if err := c.ShouldBindJSON(&updateData); err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	// Build update fields dynamically
+// // 	updateFields := bson.M{}
+// // 	if updateData.Name != "" {
+// // 		updateFields["name"] = updateData.Name
+// // 	}
+// // 	if updateData.Email != "" {
+// // 		updateFields["email"] = updateData.Email
+// // 	}
+// // 	if updateData.DepartmentName != "" {
+// // 		updateFields["departmentname"] = updateData.DepartmentName
+// // 	}
+
+// // 	if len(updateFields) == 0 {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "No fields provided for update"})
+// // 		return
+// // 	}
+
+// // 	update := bson.M{"$set": updateFields}
+
+// // 	collection := db.Collection(teacherCollection)
+// // 	result, err := collection.UpdateOne(ctx, bson.M{"_id": teacherID}, update)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher"})
+// // 		return
+// // 	}
+// // 	if result.MatchedCount == 0 {
+// // 		c.JSON(http.StatusNotFound, gin.H{"error": "Teacher not found"})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, gin.H{"message": "Teacher updated successfully"})
+// // }
+
+// // func DeleteTeacher(c *gin.Context) {
+// // 	teacherIDStr := c.Param("id")
+// // 	teacherID, err := primitive.ObjectIDFromHex(teacherIDStr)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// // 	defer cancel()
+
+// // 	// Delete teacher from teacherCollection
+// // 	teacherColl := db.Collection(teacherCollection)
+// // 	result, err := teacherColl.DeleteOne(ctx, bson.M{"_id": teacherID})
+// // 	if err != nil || result.DeletedCount == 0 {
+// // 		c.JSON(http.StatusNotFound, gin.H{"error": "Teacher not found or delete failed"})
+// // 		return
+// // 	}
+
+// // 	// Delete all assignments related to this teacher
+// // 	assignmentColl := db.Collection(teacherAssignmentCollection)
+// // 	_, err = assignmentColl.DeleteMany(ctx, bson.M{"teacher_id": teacherID})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete teacher assignments"})
+// // 		return
+// // 	}
+
+// // 	// Remove references from event's assignedteachers
+// // 	eventColl := db.Collection(eventCollection)
+// // 	_, err = eventColl.UpdateMany(ctx,
+// // 		bson.M{},
+// // 		bson.M{
+// // 			"$pull": bson.M{
+// // 				"assginedteachers": bson.M{"teacher_id": teacherID},
+// // 			},
+// // 		},
+// // 	)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove references from events"})
+// // 		return
+// // 	}
+
+// // 	// Optional: delete user record from userCollection
+// // 	userColl := db.Collection(userCollection)
+// // 	_, _ = userColl.DeleteOne(ctx, bson.M{"_id": teacherID})
+
+// // 	c.JSON(http.StatusOK, gin.H{"message": "Teacher and related references deleted successfully"})
+// // }
+
+// // //notification system
+
+// // func createNotification(teacherID, eventID, roleID, assignmentID primitive.ObjectID, eventName, roleName, teacherName string) error {
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	notification := Notification{
+// // 		ID:             primitive.NewObjectID(),
+// // 		NotificationID: primitive.NewObjectID(),
+// // 		TeacherID:      teacherID,
+// // 		UserID:         teacherID, // Assuming teacher_id is same as user_id
+// // 		Type:           "assignment",
+// // 		Title:          "New Role Assignment",
+// // 		Message:        fmt.Sprintf("You have been assigned to the role '%s' in event '%s'", roleName, eventName),
+// // 		EventID:        eventID,
+// // 		EventName:      eventName,
+// // 		RoleID:         roleID,
+// // 		RoleName:       roleName,
+// // 		AssignmentID:   assignmentID,
+// // 		IsRead:         false,
+// // 		CreatedAt:      time.Now(),
+// // 	}
+
+// // 	collection := db.Collection("notifications")
+// // 	_, err := collection.InsertOne(ctx, notification)
+// // 	return err
+// // }
+
+// // //notifications
+
+// // func GetTeacherNotifications(c *gin.Context) {
+// // 	teacherID := c.Param("id")
+// // 	objectID, err := primitive.ObjectIDFromHex(teacherID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection("notifications")
+// // 	showRead := c.DefaultQuery("show_read", "true") == "true"
+
+// // 	filter := bson.M{"teacher_id": objectID}
+// // 	if !showRead {
+// // 		filter["is_read"] = false
+// // 	}
+
+// // 	cursor, err := collection.Find(ctx, filter, options.Find().SetSort(bson.D{{"created_at", -1}}))
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	var notifications []Notification
+// // 	if err := cursor.All(ctx, &notifications); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	if notifications == nil {
+// // 		c.JSON(http.StatusOK, []Notification{})
+// // 		return
+// // 	}
+// // 	c.JSON(http.StatusOK, notifications)
+// // }
+
+// // // Mark notification as read
+// // func MarkNotificationRead(c *gin.Context) {
+// // 	notificationID := c.Param("id")
+// // 	objectID, err := primitive.ObjectIDFromHex(notificationID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification ID"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection("notifications")
+// // 	now := time.Now()
+
+// // 	update := bson.M{
+// // 		"$set": bson.M{
+// // 			"is_read": true,
+// // 			"read_at": &now,
+// // 		},
+// // 	}
+
+// // 	result, err := collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	if result.MatchedCount == 0 {
+// // 		c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found"})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, gin.H{"message": "Notification marked as read"})
+// // }
+
+// // // Delete notification
+// // func DeleteNotification(c *gin.Context) {
+// // 	notificationID := c.Param("id")
+// // 	objectID, err := primitive.ObjectIDFromHex(notificationID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification ID"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection("notifications")
+// // 	result, err := collection.DeleteOne(ctx, bson.M{"_id": objectID})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	if result.DeletedCount == 0 {
+// // 		c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found"})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, gin.H{"message": "Notification deleted successfully"})
+// // }
+
+// // // Mark all notifications as read for a teacher
+// // func MarkAllNotificationsRead(c *gin.Context) {
+// // 	teacherID := c.Param("id")
+// // 	objectID, err := primitive.ObjectIDFromHex(teacherID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection("notifications")
+// // 	now := time.Now()
+
+// // 	update := bson.M{
+// // 		"$set": bson.M{
+// // 			"is_read": true,
+// // 			"read_at": &now,
+// // 		},
+// // 	}
+
+// // 	filter := bson.M{
+// // 		"teacher_id": objectID,
+// // 		"is_read":    false,
+// // 	}
+
+// // 	result, err := collection.UpdateMany(ctx, filter, update)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, gin.H{
+// // 		"message":       "All notifications marked as read",
+// // 		"updated_count": result.ModifiedCount,
+// // 	})
+// // }
+
+// // // Get notification count for a teacher
+// // func GetNotificationCount(c *gin.Context) {
+// // 	teacherID := c.Param("id")
+// // 	objectID, err := primitive.ObjectIDFromHex(teacherID)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// // 	defer cancel()
+
+// // 	collection := db.Collection("notifications")
+// // 	totalCount, err := collection.CountDocuments(ctx, bson.M{"teacher_id": objectID})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	unreadCount, err := collection.CountDocuments(ctx, bson.M{
+// // 		"teacher_id": objectID,
+// // 		"is_read":    false,
+// // 	})
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// // 		return
+// // 	}
+
+// // 	c.JSON(http.StatusOK, gin.H{
+// // 		"total_count":  totalCount,
+// // 		"unread_count": unreadCount,
+// // 	})
+// // }
+
+// // // report section
+// // type DetailedAssignmentReport struct {
+// // 	EventName      string `bson:"eventName"`
+// // 	EventStartDate string `bson:"eventStartDate"`
+// // 	EventEndDate   string `bson:"eventEndDate"`
+// // 	TeacherName    string `bson:"teacherName"`
+// // 	TeacherEmail   string `bson:"teacherEmail"`
+// // 	DepartmentName string `bson:"departmentName"`
+// // 	RoleName       string `bson:"roleName"`
+// // 	RolePoint      int    `bson:"rolePoint"`
+// // }
+
+// // // GenerateEventReportCSV generates a CSV report for a specific event
+// // func GenerateEventReportCSV(c *gin.Context) {
+// // 	eventIDStr := c.Param("eventid")
+// // 	eventID, err := primitive.ObjectIDFromHex(eventIDStr)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// // 	defer cancel()
+
+// // 	pipeline := mongo.Pipeline{
+// // 		{{"$match", bson.M{"event_id": eventID}}},
+// // 		{{"$lookup", bson.M{
+// // 			"from":         "events",
+// // 			"localField":   "event_id",
+// // 			"foreignField": "_id",
+// // 			"as":           "event",
+// // 		}}},
+// // 		{{"$unwind", "$event"}},
+// // 		{{"$lookup", bson.M{
+// // 			"from":         "teachers",
+// // 			"localField":   "teacher_id",
+// // 			"foreignField": "_id",
+// // 			"as":           "teacher",
+// // 		}}},
+// // 		{{"$unwind", "$teacher"}},
+// // 		{{"$lookup", bson.M{
+// // 			"from":         "roles",
+// // 			"localField":   "role_id",
+// // 			"foreignField": "_id",
+// // 			"as":           "role",
+// // 		}}},
+// // 		{{"$unwind", "$role"}},
+// // 		{{"$project", bson.M{
+// // 			"eventName":      "$event.name",
+// // 			"eventStartDate": "$event.start_date",
+// // 			"eventEndDate":   "$event.end_date",
+// // 			"teacherName":    "$teacher.name",
+// // 			"teacherEmail":   "$teacher.email",
+// // 			"departmentName": "$teacher.departmentname",
+// // 			"roleName":       "$role.name",
+// // 			"rolePoint":      "$role.point",
+// // 		}}},
+// // 	}
+
+// // 	cursor, err := db.Collection(teacherAssignmentCollection).Aggregate(ctx, pipeline)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate report"})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	var results []DetailedAssignmentReport
+// // 	if err := cursor.All(ctx, &results); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode report data"})
+// // 		return
+// // 	}
+
+// // 	c.Header("Content-Type", "text/csv")
+// // 	c.Header("Content-Disposition", "attachment; filename=event_report.csv")
+
+// // 	writer := csv.NewWriter(c.Writer)
+// // 	headers := []string{"Event Name", "Event Start Date", "Event End Date", "Teacher Name", "Teacher Email", "Department", "Assigned Role", "Points"}
+// // 	writer.Write(headers)
+
+// // 	for _, result := range results {
+// // 		row := []string{
+// // 			result.EventName,
+// // 			result.EventStartDate,
+// // 			result.EventEndDate,
+// // 			result.TeacherName,
+// // 			result.TeacherEmail,
+// // 			result.DepartmentName,
+// // 			result.RoleName,
+// // 			strconv.Itoa(result.RolePoint),
+// // 		}
+// // 		writer.Write(row)
+// // 	}
+
+// // 	writer.Flush()
+// // }
+
+// // // GenerateDateRangeReportCSV generates a CSV for events within a date range
+// // func GenerateDateRangeReportCSV(c *gin.Context) {
+// // 	startDateStr := c.Query("start_date") // e.g., "2023-01-01"
+// // 	endDateStr := c.Query("end_date")     // e.g., "2023-12-31"
+
+// // 	if startDateStr == "" || endDateStr == "" {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Please provide start_date and end_date parameters."})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// // 	defer cancel()
+
+// // 	pipeline := mongo.Pipeline{
+// // 		{{"$match", bson.M{
+// // 			"start_date": bson.M{"$gte": startDateStr},
+// // 			"end_date":   bson.M{"$lte": endDateStr},
+// // 		}}},
+// // 		{{"$lookup", bson.M{
+// // 			"from":         "teacherAssignments",
+// // 			"localField":   "_id",
+// // 			"foreignField": "event_id",
+// // 			"as":           "assignments",
+// // 		}}},
+// // 		{{"$unwind", "$assignments"}},
+// // 		{{"$lookup", bson.M{
+// // 			"from":         "teachers",
+// // 			"localField":   "assignments.teacher_id",
+// // 			"foreignField": "_id",
+// // 			"as":           "teacher",
+// // 		}}},
+// // 		{{"$unwind", "$teacher"}},
+// // 		{{"$lookup", bson.M{
+// // 			"from":         "roles",
+// // 			"localField":   "assignments.role_id",
+// // 			"foreignField": "_id",
+// // 			"as":           "role",
+// // 		}}},
+// // 		{{"$unwind", "$role"}},
+// // 		{{"$project", bson.M{
+// // 			"eventName":      "$name",
+// // 			"eventStartDate": "$start_date",
+// // 			"eventEndDate":   "$end_date",
+// // 			"teacherName":    "$teacher.name",
+// // 			"teacherEmail":   "$teacher.email",
+// // 			"departmentName": "$teacher.departmentname",
+// // 			"roleName":       "$role.name",
+// // 			"rolePoint":      "$role.point",
+// // 		}}},
+// // 	}
+
+// // 	cursor, err := db.Collection(eventCollection).Aggregate(ctx, pipeline)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate report"})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	var results []DetailedAssignmentReport
+// // 	if err := cursor.All(ctx, &results); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode report data"})
+// // 		return
+// // 	}
+
+// // 	c.Header("Content-Type", "text/csv")
+// // 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=report_%s_to_%s.csv", startDateStr, endDateStr))
+
+// // 	writer := csv.NewWriter(c.Writer)
+// // 	headers := []string{"Event Name", "Event Start Date", "Event End Date", "Teacher Name", "Teacher Email", "Department", "Assigned Role", "Points"}
+// // 	writer.Write(headers)
+
+// // 	for _, result := range results {
+// // 		row := []string{
+// // 			result.EventName,
+// // 			result.EventStartDate,
+// // 			result.EventEndDate,
+// // 			result.TeacherName,
+// // 			result.TeacherEmail,
+// // 			result.DepartmentName,
+// // 			result.RoleName,
+// // 			strconv.Itoa(result.RolePoint),
+// // 		}
+// // 		writer.Write(row)
+// // 	}
+
+// // 	writer.Flush()
+// // }
+
+// // // GenerateTeacherReportCSV generates a CSV report for a specific teacher
+// // func GenerateTeacherReportCSV(c *gin.Context) {
+// // 	teacherIDStr := c.Param("teacherid")
+// // 	teacherID, err := primitive.ObjectIDFromHex(teacherIDStr)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// // 		return
+// // 	}
+
+// // 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// // 	defer cancel()
+
+// // 	pipeline := mongo.Pipeline{
+// // 		{{"$match", bson.M{"teacher_id": teacherID}}},
+// // 		{{"$lookup", bson.M{
+// // 			"from":         "events",
+// // 			"localField":   "event_id",
+// // 			"foreignField": "_id",
+// // 			"as":           "event",
+// // 		}}},
+// // 		{{"$unwind", "$event"}},
+// // 		{{"$lookup", bson.M{
+// // 			"from":         "teachers",
+// // 			"localField":   "teacher_id",
+// // 			"foreignField": "_id",
+// // 			"as":           "teacher",
+// // 		}}},
+// // 		{{"$unwind", "$teacher"}},
+// // 		{{"$lookup", bson.M{
+// // 			"from":         "roles",
+// // 			"localField":   "role_id",
+// // 			"foreignField": "_id",
+// // 			"as":           "role",
+// // 		}}},
+// // 		{{"$unwind", "$role"}},
+// // 		{{"$project", bson.M{
+// // 			"eventName":      "$event.name",
+// // 			"eventStartDate": "$event.start_date",
+// // 			"eventEndDate":   "$event.end_date",
+// // 			"teacherName":    "$teacher.name",
+// // 			"teacherEmail":   "$teacher.email",
+// // 			"departmentName": "$teacher.departmentname",
+// // 			"roleName":       "$role.name",
+// // 			"rolePoint":      "$role.point",
+// // 		}}},
+// // 	}
+
+// // 	cursor, err := db.Collection(teacherAssignmentCollection).Aggregate(ctx, pipeline)
+// // 	if err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate report"})
+// // 		return
+// // 	}
+// // 	defer cursor.Close(ctx)
+
+// // 	var results []DetailedAssignmentReport
+// // 	if err := cursor.All(ctx, &results); err != nil {
+// // 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode report data"})
+// // 		return
+// // 	}
+
+// // 	c.Header("Content-Type", "text/csv")
+// // 	c.Header("Content-Disposition", "attachment; filename=teacher_report.csv")
+
+// // 	writer := csv.NewWriter(c.Writer)
+// // 	headers := []string{"Teacher Name", "Teacher Email", "Department", "Event Name", "Event Start Date", "Event End Date", "Assigned Role", "Points"}
+// // 	writer.Write(headers)
+
+// // 	for _, result := range results {
+// // 		row := []string{
+// // 			result.TeacherName,
+// // 			result.TeacherEmail,
+// // 			result.DepartmentName,
+// // 			result.EventName,
+// // 			result.EventStartDate,
+// // 			result.EventEndDate,
+// // 			result.RoleName,
+// // 			strconv.Itoa(result.RolePoint),
+// // 		}
+// // 		writer.Write(row)
+// // 	}
+
+// //		writer.Flush()
+// //	}
+// package main
+
+// import (
+// 	"context"
+// 	"encoding/csv"
+// 	"fmt"
+// 	"net/http"
+// 	"strconv"
+// 	"time"
+
+// 	"github.com/gin-gonic/gin"
+// 	"go.mongodb.org/mongo-driver/bson"
+// 	"go.mongodb.org/mongo-driver/bson/primitive"
+// 	"go.mongodb.org/mongo-driver/mongo"
+// 	"go.mongodb.org/mongo-driver/mongo/options"
+// 	"golang.org/x/crypto/bcrypt"
+// )
+
+// // LeaderboardEntry defines the structure for a teacher's entry in the leaderboard.
+// type LeaderboardEntry struct {
+// 	ID     primitive.ObjectID `json:"teacher_id" bson:"_id"`
+// 	Name   string             `json:"teacher_name" bson:"teacher_name"`
+// 	Points int                `json:"points" bson:"total_points"`
+// }
+
+// // FacultyDashboardResponse defines the structure for the faculty dashboard.
+// type FacultyDashboardResponse struct {
+// 	Leaderboard    []LeaderboardEntry `json:"leaderboard"`
+// 	CurrentEvents  []Event            `json:"current_events"`
+// 	UpcomingEvents []Event            `json:"upcoming_events"`
+// 	PastEvents     []Event            `json:"past_events"`
+// }
+
+// // EditAssignmentRequest defines the structure for the request to edit a teacher assignment.
+// type EditAssignmentRequest struct {
+// 	Points *int `json:"points"` // Use a pointer to distinguish between 0 and not provided
+// }
+
+// func Signup(c *gin.Context) {
+// 	var user User
+// 	if err := c.ShouldBindJSON(&user); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// 		return
+// 	}
+
+// 	// if user.Role != "admin" && user.Role != "teacher" {
+// 	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role"})
+// 	// 	return
+// 	// }
+// 	user.Role = "faculty"
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	userCollectionRef := db.Collection(userCollection)
+// 	teacherCollectionRef := db.Collection(teacherCollection)
+
+// 	// Check if email already exists in users
+// 	count, err := userCollectionRef.CountDocuments(ctx, bson.M{"email": user.Email})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+// 		return
+// 	}
+// 	if count > 0 {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Email already in use"})
+// 		return
+// 	}
+
+// 	// Check if a teacher exists with the same email
+// 	var existingTeacher Teacher
+// 	err = teacherCollectionRef.FindOne(ctx, bson.M{"email": user.Email}).Decode(&existingTeacher)
+// 	if err == nil {
+// 		// Teacher found, use Teacher's UserID as the new User's _id
+// 		user.ID = existingTeacher.UserID
+// 		user.UserID = existingTeacher.UserID
+// 	} else {
+// 		// No matching teacher, generate new ObjectID
+// 		user.ID = primitive.NewObjectID()
+// 		user.UserID = user.ID
+// 	}
+
+// 	// Hash password
+// 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+// 		return
+// 	}
+// 	user.Password = string(hashedPassword)
+
+// 	// Insert user with assigned ID
+// 	_, err = userCollectionRef.InsertOne(ctx, user)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusCreated, gin.H{
+// 		"message": "User created successfully",
+// 		"user_id": user.ID,
+// 	})
+// }
+
+// // Login handler
+// func Login(c *gin.Context) {
+// 	type LoginRequest struct {
+// 		Email    string `json:"email"`
+// 		Password string `json:"password"`
+// 	}
+
+// 	type LoginResponse struct {
+// 		Message string             `json:"message"`
+// 		Role    string             `json:"role,omitempty"`
+// 		Name    string             `json:"name,omitempty"`
+// 		UserID  primitive.ObjectID `json:"user_id,omitempty" bson:"user_id,omitempty"`
+// 	}
+
+// 	var req LoginRequest
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	var user User
+// 	collection := db.Collection(userCollection)
+// 	err := collection.FindOne(ctx, bson.M{"email": req.Email}).Decode(&user)
+// 	if err != nil {
+// 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+// 		return
+// 	}
+
+// 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
+// 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, LoginResponse{
+// 		Message: "Login successful",
+// 		Name:    user.Name,
+// 		Role:    user.Role,
+// 		UserID:  user.UserID,
+// 	})
+// }
+
+// // CreateEvent handler
+// func CreateEvent(c *gin.Context) {
+// 	var event Event
+// 	if err := c.ShouldBindJSON(&event); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection(eventCollection)
+// 	event.ID = primitive.NewObjectID()
+// 	event.EventID = event.ID
+// 	_, err := collection.InsertOne(ctx, event)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, event)
+// }
+
+// // ListEvents handler
+// func ListEvents(c *gin.Context) {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection(eventCollection)
+// 	cursor, err := collection.Find(ctx, bson.M{})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var events []Event
+// 	if err := cursor.All(ctx, &events); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, events)
+// }
+
+// // GetEventByID handler
+// func GetEventByID(c *gin.Context) {
+// 	id := c.Param("id")
+// 	objectID, err := primitive.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection(eventCollection)
+// 	var event Event
+// 	err = collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&event)
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, event)
+// }
+
+// // UpdateEvent handler
+// func UpdateEvent(c *gin.Context) {
+// 	id := c.Param("id")
+// 	objectID, err := primitive.ObjectIDFromHex(id)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid ID format"})
+// 		return
+// 	}
+
+// 	var event Event
+// 	if err := c.ShouldBindJSON(&event); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection(eventCollection)
+// 	update := bson.M{
+// 		"$set": bson.M{
+// 			"name":        event.Name,
+// 			"start_date":  event.StartDate,
+// 			"start_time":  event.StartTime,
+// 			"end_date":    event.EndDate,
+// 			"end_time":    event.EndTime,
+// 			"description": event.Description,
+// 		},
+// 	}
+
+// 	_, err = collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"message": "Event updated successfully"})
+// }
+
+// func GetTopTeachers(c *gin.Context) {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+
+// 	// MongoDB aggregation pipeline to get top teachers
+// 	pipeline := mongo.Pipeline{
+// 		{
+// 			{"$lookup", bson.M{
+// 				"from":         teacherAssignmentCollection,
+// 				"localField":   "_id",
+// 				"foreignField": "teacher_id",
+// 				"as":           "assignments",
+// 			}},
+// 		},
+// 		{
+// 			{"$unwind", bson.M{
+// 				"path":                       "$assignments",
+// 				"preserveNullAndEmptyArrays": true,
+// 			}},
+// 		},
+// 		{
+// 			{"$lookup", bson.M{
+// 				"from":         roleCollection,
+// 				"localField":   "assignments.role_id",
+// 				"foreignField": "_id",
+// 				"as":           "role",
+// 			}},
+// 		},
+// 		{
+// 			{"$unwind", bson.M{
+// 				"path":                       "$role",
+// 				"preserveNullAndEmptyArrays": true,
+// 			}},
+// 		},
+// 		{
+// 			{"$group", bson.M{
+// 				"_id":          "$_id",
+// 				"teacher_name": bson.M{"$first": "$name"},
+// 				"total_points": bson.M{"$sum": bson.M{
+// 					"$ifNull": []interface{}{"$role.point", 0},
+// 				}},
+// 			}},
+// 		},
+// 		{
+// 			{"$sort", bson.M{"total_points": -1}},
+// 		},
+// 		{
+// 			{"$limit", 10},
+// 		},
+// 	}
+
+// 	collection := db.Collection(teacherCollection)
+// 	cursor, err := collection.Aggregate(ctx, pipeline)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var teachers []LeaderboardEntry
+// 	if err := cursor.All(ctx, &teachers); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, teachers)
+// }
+
+// func CreateRole(c *gin.Context) {
+// 	eventID := c.Param("eventid")
+
+// 	var role Role
+// 	if err := c.ShouldBindJSON(&role); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	// Convert eventID string param to ObjectID
+// 	oid, err := primitive.ObjectIDFromHex(eventID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	roleCollection := db.Collection("roles")
+// 	eventCollection := db.Collection("events")
+
+// 	// Retrieve the Event document to get event name BEFORE inserting role
+// 	var event Event
+// 	err = eventCollection.FindOne(ctx, bson.M{"_id": oid}).Decode(&event)
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+// 		return
+// 	}
+
+// 	// Assign all fields before inserting
+// 	role.ID = primitive.NewObjectID()
+// 	role.EventID = oid
+// 	role.EventName = event.Name // <- now it will get saved
+// 	role.RoleID = role.ID
+
+// 	// Insert the new role document into roles collection
+// 	_, err = roleCollection.InsertOne(ctx, role)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert role: " + err.Error()})
+// 		return
+// 	}
+
+// 	// Update the event document: push role object with id and name to the roles array
+// 	update := bson.M{
+// 		"$push": bson.M{
+// 			"roles": bson.M{
+// 				"id":   role.ID,
+// 				"name": role.Name,
+// 			},
+// 		},
+// 	}
+// 	_, err = eventCollection.UpdateOne(ctx, bson.M{"_id": oid}, update)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update event with role: " + err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, role)
+// }
+
+// func CreateTeacher(c *gin.Context) {
+// 	var teacher Teacher
+// 	if err := c.ShouldBindJSON(&teacher); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection(teacherCollection)
+// 	teacher.ID = primitive.NewObjectID()
+// 	teacher.UserID = teacher.ID
+// 	_, err := collection.InsertOne(ctx, teacher)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	// Update user if email matches
+// 	userCollectionRef := db.Collection(userCollection)
+// 	filter := bson.M{"email": teacher.Email}
+// 	update := bson.M{"$set": bson.M{"user_id": teacher.ID}} // Add new field
+// 	_, _ = userCollectionRef.UpdateOne(ctx, filter, update)
+
+// 	userCollectionRef1 := db.Collection(userCollection)
+// 	filter1 := bson.M{"email": teacher.Email}
+// 	update1 := bson.M{"$set": bson.M{"_id": teacher.ID}} // Add new field
+// 	_, _ = userCollectionRef1.UpdateOne(ctx, filter1, update1)
+
+// 	c.JSON(http.StatusOK, teacher)
+// }
+
+// // ListTeachers handler
+// func ListTeachers(c *gin.Context) {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	// MongoDB aggregation pipeline to get teachers with department info
+// 	pipeline := mongo.Pipeline{
+// 		{
+// 			{"$lookup", bson.M{
+// 				"from":         departmentCollection,
+// 				"localField":   "department_id",
+// 				"foreignField": "_id",
+// 				"as":           "department",
+// 			}},
+// 		},
+// 		{
+// 			{"$unwind", bson.M{
+// 				"path":                       "$department",
+// 				"preserveNullAndEmptyArrays": true,
+// 			}},
+// 		},
+// 		{
+// 			{"$project", bson.M{
+// 				"_id":             1,
+// 				"name":            1,
+// 				"email":           1,
+// 				"profile_photo":   1,
+// 				"point":           1,
+// 				"department_name": "$departmentname",
+// 			}},
+// 		},
+// 	}
+
+// 	collection := db.Collection(teacherCollection)
+// 	cursor, err := collection.Aggregate(ctx, pipeline)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	type TeacherWithDepartment struct {
+// 		ID             primitive.ObjectID `json:"id" bson:"_id"`
+// 		Name           string             `json:"name" bson:"name"`
+// 		Email          string             `json:"email" bson:"email"`
+// 		ProfilePhoto   string             `json:"profile_photo" bson:"profile_photo"`
+// 		DepartmentName string             `json:"department_name" bson:"department_name"`
+// 		Point          int                `json:"point" bson:"point"`
+// 	}
+
+// 	var teachers []TeacherWithDepartment
+// 	if err := cursor.All(ctx, &teachers); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, teachers)
+// }
+
+// // AssignTeacherToRole assigns a teacher to a role and updates their points
+// func AssignTeacherToRole(c *gin.Context) {
+// 	type AssignmentRequest struct {
+// 		TeacherID string `json:"teacher_id" binding:"required"`
+// 		RoleID    string `json:"role_id" binding:"required"`
+// 		EventID   string `json:"event_id" binding:"required"`
+// 	}
+
+// 	var req AssignmentRequest
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	// Convert string IDs to ObjectIDs
+// 	teacherID, err := primitive.ObjectIDFromHex(req.TeacherID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID format"})
+// 		return
+// 	}
+
+// 	roleID, err := primitive.ObjectIDFromHex(req.RoleID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID format"})
+// 		return
+// 	}
+
+// 	eventID, err := primitive.ObjectIDFromHex(req.EventID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// 		return
+// 	}
+
+// 	// Get the role details to obtain points and event name
+// 	roleCollection := db.Collection(roleCollection)
+// 	var role Role
+// 	err = roleCollection.FindOne(ctx, bson.M{"_id": roleID}).Decode(&role)
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Role not found"})
+// 		return
+// 	}
+
+// 	// Get the event name
+// 	eventCollection := db.Collection(eventCollection)
+// 	var event Event
+// 	err = eventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&event)
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+// 		return
+// 	}
+
+// 	// Check if the teacher exists
+// 	teacherCollection := db.Collection(teacherCollection)
+// 	var teacher Teacher
+// 	err = teacherCollection.FindOne(ctx, bson.M{"_id": teacherID}).Decode(&teacher)
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Teacher not found"})
+// 		return
+// 	}
+
+// 	// Check if this assignment already exists
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+// 	count, err := assignmentCollection.CountDocuments(ctx, bson.M{
+// 		"teacher_id": teacherID,
+// 		"role_id":    roleID,
+// 		"event_id":   eventID,
+// 	})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+// 		return
+// 	}
+// 	if count > 0 {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Teacher is already assigned to this role in this event"})
+// 		return
+// 	}
+
+// 	// Check if the role has reached its head count limit
+// 	assignedCount, err := assignmentCollection.CountDocuments(ctx, bson.M{"role_id": roleID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+// 		return
+// 	}
+// 	if int(assignedCount) >= role.HeadCount {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Role has reached its maximum head count"})
+// 		return
+// 	}
+// 	id := primitive.NewObjectID()
+// 	// Create the assignment using the exact Assignment struct
+// 	assignment := Assignment{
+// 		ID:           id,
+// 		AssignmentID: id,
+// 		EventID:      eventID,
+// 		EventName:    event.Name,
+// 		TeacherID:    teacherID,
+// 		RoleID:       roleID,
+// 		RoleName:     role.Name,
+// 		TeacherName:  teacher.Name,
+// 		TeacherEmail: teacher.Email,
+// 	}
+
+// 	_, err = assignmentCollection.InsertOne(ctx, assignment)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create assignment"})
+// 		return
+// 	}
+
+// 	// Update teacher's points
+// 	_, err = teacherCollection.UpdateOne(
+// 		ctx,
+// 		bson.M{"_id": teacherID},
+// 		bson.M{"$inc": bson.M{"point": role.Point}},
+// 	)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher points"})
+// 		return
+// 	}
+
+// 	// Add role reference to teacher's Assginedteachers array using the RoleRef struct
+// 	roleRef := RoleRef1{
+// 		ID:            roleID,
+// 		RoleName:      role.Name,
+// 		TeacherleName: teacher.Name,
+// 		Assignment_ID: assignment.ID,
+// 	}
+
+// 	_, err = eventCollection.UpdateOne(
+// 		ctx,
+// 		bson.M{"_id": eventID},
+// 		bson.M{"$push": bson.M{"assginedteachers": roleRef}},
+// 	)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher's assigned roles"})
+// 		return
+// 	}
+// 	err = createNotification(
+// 		assignment.TeacherID,
+// 		assignment.EventID,
+// 		assignment.RoleID,
+// 		assignment.ID,
+// 		assignment.EventName,
+// 		assignment.RoleName,
+// 		assignment.TeacherName,
+// 	)
+// 	if err != nil {
+// 		// Log error but don't fail the assignment
+// 		fmt.Printf("Failed to create notification: %v\n", err)
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message":    "Teacher assigned to role successfully",
+// 		"assignment": assignment,
+// 	})
+// }
+
+// // EditTeacherAssignment allows editing the points for a specific assignment.
+// func EditTeacherAssignment(c *gin.Context) {
+// 	assignmentIDStr := c.Param("id")
+// 	assignmentID, err := primitive.ObjectIDFromHex(assignmentIDStr)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid assignment ID"})
+// 		return
+// 	}
+
+// 	var req EditAssignmentRequest
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+// 		return
+// 	}
+
+// 	if req.Points == nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "No fields provided for update"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+// 	roleCollection := db.Collection(roleCollection)
+// 	teacherCollection := db.Collection(teacherCollection)
+
+// 	// Find the original assignment
+// 	var originalAssignment Assignment
+// 	err = assignmentCollection.FindOne(ctx, bson.M{"_id": assignmentID}).Decode(&originalAssignment)
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
+// 		return
+// 	}
+
+// 	// Get the original role to find the original points
+// 	var originalRole Role
+// 	err = roleCollection.FindOne(ctx, bson.M{"_id": originalAssignment.RoleID}).Decode(&originalRole)
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Original role not found"})
+// 		return
+// 	}
+
+// 	// Calculate the point difference
+// 	originalPoints := originalRole.Point
+// 	newPoints := *req.Points
+// 	pointDifference := newPoints - originalPoints
+
+// 	// Update the teacher's total points
+// 	_, err = teacherCollection.UpdateOne(
+// 		ctx,
+// 		bson.M{"_id": originalAssignment.TeacherID},
+// 		bson.M{"$inc": bson.M{"point": pointDifference}},
+// 	)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher's points"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message": "Assignment points updated successfully. Teacher's total points adjusted.",
+// 	})
+// }
+
+// // DeleteRoleAssignment removes a teacher's role assignment with optional point handling
+// func DeleteRoleAssignment(c *gin.Context) {
+// 	type DeleteAssignmentRequest struct {
+// 		AssignmentID string `json:"assignment_id" binding:"required"`
+// 		DeductPoints bool   `json:"deduct_points"` // Whether to deduct points from teacher
+// 	}
+
+// 	var req DeleteAssignmentRequest
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// 		return
+// 	}
+
+// 	assignmentID, err := primitive.ObjectIDFromHex(req.AssignmentID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid assignment ID format"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	// Find the assignment first to get the role ID and teacher ID
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+// 	var assignment Assignment
+// 	err = assignmentCollection.FindOne(ctx, bson.M{"_id": assignmentID}).Decode(&assignment)
+// 	if err != nil {
+// 		if err == mongo.ErrNoDocuments {
+// 			c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
+// 		} else {
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+// 		}
+// 		return
+// 	}
+
+// 	// If we need to deduct points, we need to get the role's point value
+// 	if req.DeductPoints {
+// 		// Get the role to determine how many points to deduct
+// 		roleCollection := db.Collection(roleCollection)
+// 		var role Role
+// 		err = roleCollection.FindOne(ctx, bson.M{"_id": assignment.RoleID}).Decode(&role)
+// 		if err != nil {
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Role not found"})
+// 			return
+// 		}
+
+// 		// Deduct points from the teacher
+// 		teacherCollection := db.Collection(teacherCollection)
+// 		_, err = teacherCollection.UpdateOne(
+// 			ctx,
+// 			bson.M{"_id": assignment.TeacherID},
+// 			bson.M{"$inc": bson.M{"point": -role.Point}},
+// 		)
+// 		if err != nil {
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher points"})
+// 			return
+// 		}
+// 	}
+
+// 	// Remove the role reference from teacher's assginedteachers array
+// 	// Match using the exact field name from the Teacher struct
+// 	eventCollection := db.Collection(eventCollection)
+// 	_, err = eventCollection.UpdateOne(
+// 		ctx,
+// 		bson.M{"_id": assignment.EventID},
+// 		bson.M{"$pull": bson.M{"assginedteachers": bson.M{"id": assignment.RoleID}}},
+// 	)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher's assigned roles"})
+// 		return
+// 	}
+
+// 	// Delete the assignment
+// 	_, err = assignmentCollection.DeleteOne(ctx, bson.M{"_id": assignmentID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete assignment"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message":         "Role assignment deleted successfully",
+// 		"deducted_points": req.DeductPoints,
+// 	})
+// }
+
+// // GetTeacherAssignments retrieves all role assignments for a specific teacher
+// func GetTeacherAssignments(c *gin.Context) {
+// 	teacherID := c.Param("id")
+// 	objectID, err := primitive.ObjectIDFromHex(teacherID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID format"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection(teacherAssignmentCollection)
+// 	cursor, err := collection.Find(ctx, bson.M{"teacher_id": objectID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var assignments []Assignment
+// 	if err := cursor.All(ctx, &assignments); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	if len(assignments) == 0 {
+// 		c.JSON(http.StatusOK, []Assignment{})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, assignments)
+// }
+
+// // GetRoleAssignments retrieves all teacher assignments for a specific role
+// func GetRoleAssignments(c *gin.Context) {
+// 	roleID := c.Param("id")
+// 	objectID, err := primitive.ObjectIDFromHex(roleID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID format"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection(teacherAssignmentCollection)
+// 	cursor, err := collection.Find(ctx, bson.M{"role_id": objectID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var assignments []Assignment
+// 	if err := cursor.All(ctx, &assignments); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, assignments)
+// }
+
+// //
+
+// func DeleteEvent(c *gin.Context) {
+// 	type DeleteEventRequest struct {
+// 		EventID      string `json:"event_id" binding:"required"`
+// 		DeductPoints bool   `json:"deduct_points"` // Whether to deduct points from teachers
+// 	}
+
+// 	var req DeleteEventRequest
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// 		return
+// 	}
+
+// 	eventID, err := primitive.ObjectIDFromHex(req.EventID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+
+// 	// Get the event details to confirm it exists
+// 	eventCollection := db.Collection(eventCollection)
+// 	var event Event
+// 	err = eventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&event)
+// 	if err != nil {
+// 		if err == mongo.ErrNoDocuments {
+// 			c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+// 		} else {
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
+// 		}
+// 		return
+// 	}
+
+// 	// Find all roles associated with the event
+// 	roleCollection := db.Collection(roleCollection)
+// 	roleCursor, err := roleCollection.Find(ctx, bson.M{"event_id": eventID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query roles"})
+// 		return
+// 	}
+// 	defer roleCursor.Close(ctx)
+
+// 	var roles []Role
+// 	if err := roleCursor.All(ctx, &roles); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse roles"})
+// 		return
+// 	}
+
+// 	// Process teacher assignments for each role
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+// 	teacherCollection := db.Collection(teacherCollection)
+
+// 	for _, role := range roles {
+// 		// Find all assignments for this role
+// 		assignmentCursor, err := assignmentCollection.Find(ctx, bson.M{"role_id": role.ID})
+// 		if err != nil {
+// 			continue // Skip if error
+// 		}
+
+// 		var assignments []Assignment
+// 		if err := assignmentCursor.All(ctx, &assignments); err != nil {
+// 			assignmentCursor.Close(ctx)
+// 			continue // Skip if error
+// 		}
+// 		assignmentCursor.Close(ctx)
+
+// 		// If deducting points is requested, update each teacher's points
+// 		if req.DeductPoints {
+// 			for _, assignment := range assignments {
+// 				_, _ = teacherCollection.UpdateOne(
+// 					ctx,
+// 					bson.M{"_id": assignment.TeacherID},
+// 					bson.M{"$inc": bson.M{"point": -role.Point}},
+// 				)
+
+// 				// Remove role reference from event's assginedteachers array
+// 				_, _ = eventCollection.UpdateOne(
+// 					ctx,
+// 					bson.M{"_id": eventID},
+// 					bson.M{"$pull": bson.M{"assginedteachers": bson.M{"assignment_id": assignment.ID}}},
+// 				)
+// 			}
+// 		}
+
+// 		// Delete all assignments for this role
+// 		_, _ = assignmentCollection.DeleteMany(ctx, bson.M{"role_id": role.ID})
+// 	}
+
+// 	// Delete all roles associated with the event
+// 	_, err = roleCollection.DeleteMany(ctx, bson.M{"event_id": eventID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete roles"})
+// 		return
+// 	}
+
+// 	// Finally delete the event itself
+// 	_, err = eventCollection.DeleteOne(ctx, bson.M{"_id": eventID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete event"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message":         "Event and all associated data deleted successfully",
+// 		"deducted_points": req.DeductPoints,
+// 		"event_name":      event.Name,
+// 	})
+// }
+
+// // GetRolesByEventID retrieves all roles for a specific event
+// func GetRolesByEventID(c *gin.Context) {
+// 	eventID := c.Param("id")
+// 	objectID, err := primitive.ObjectIDFromHex(eventID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	roleCollection := db.Collection(roleCollection)
+// 	cursor, err := roleCollection.Find(ctx, bson.M{"event_id": objectID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var roles []Role
+// 	if err := cursor.All(ctx, &roles); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, roles)
+// }
+
+// // GetTeacherRolesInEvent retrieves all roles assigned to a teacher in a specific event
+// func GetTeacherRolesInEvent(c *gin.Context) {
+// 	teacherID := c.Param("teacherid")
+// 	eventID := c.Param("eventid")
+
+// 	teacherObjID, err := primitive.ObjectIDFromHex(teacherID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID format"})
+// 		return
+// 	}
+
+// 	eventObjID, err := primitive.ObjectIDFromHex(eventID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	// Find all assignments for this teacher in this event
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+
+// 	// MongoDB aggregation pipeline to get detailed role information
+// 	pipeline := mongo.Pipeline{
+// 		{
+// 			{"$match", bson.M{
+// 				"teacher_id": teacherObjID,
+// 				"event_id":   eventObjID,
+// 			}},
+// 		},
+// 		{
+// 			{"$lookup", bson.M{
+// 				"from":         roleCollection,
+// 				"localField":   "role_id",
+// 				"foreignField": "_id",
+// 				"as":           "role_details",
+// 			}},
+// 		},
+// 		{
+// 			{"$unwind", bson.M{
+// 				"path":                       "$role_details",
+// 				"preserveNullAndEmptyArrays": false,
+// 			}},
+// 		},
+// 		{
+// 			{"$project", bson.M{
+// 				"_id":              1,
+// 				"event_id":         1,
+// 				"event_name":       "$eventname",
+// 				"teacher_id":       1,
+// 				"role_id":          1,
+// 				"role_name":        "$role_details.name",
+// 				"role_description": "$role_details.description",
+// 				"role_point":       "$role_details.point",
+// 			}},
+// 		},
+// 	}
+
+// 	cursor, err := assignmentCollection.Aggregate(ctx, pipeline)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	type TeacherRoleAssignment struct {
+// 		ID              primitive.ObjectID `json:"id" bson:"_id"`
+// 		EventID         primitive.ObjectID `json:"event_id" bson:"event_id"`
+// 		EventName       string             `json:"event_name" bson:"event_name"`
+// 		TeacherID       primitive.ObjectID `json:"teacher_id" bson:"teacher_id"`
+// 		RoleID          primitive.ObjectID `json:"role_id" bson:"role_id"`
+// 		RoleName        string             `json:"role_name" bson:"role_name"`
+// 		RoleDescription string             `json:"role_description" bson:"role_description"`
+// 		RolePoint       int                `json:"role_point" bson:"role_point"`
+// 	}
+
+// 	var assignments []TeacherRoleAssignment
+// 	if err := cursor.All(ctx, &assignments); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, assignments)
+// }
+
+// func GetAssignedTeachersForEvent(c *gin.Context) {
+// 	eventIDParam := c.Param("eventid")
+// 	eventID, err := primitive.ObjectIDFromHex(eventIDParam)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	// Ensure you're using the correct collection name
+// 	assignmentCollection := db.Collection("teacherAssignments") // Make sure this matches insert function
+
+// 	// Debug log to confirm which ID is being queried
+// 	fmt.Println("Fetching assignments for Event ID:", eventID.Hex())
+
+// 	// Query assignments with matching event_id
+// 	filter := bson.M{"event_id": eventID}
+// 	cursor, err := assignmentCollection.Find(ctx, filter)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch assignments"})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var assignments []Assignment
+// 	if err = cursor.All(ctx, &assignments); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode assignments"})
+// 		return
+// 	}
+
+// 	// Log how many results were found
+// 	fmt.Printf("Found %d assignments for event\n", len(assignments))
+
+// 	if len(assignments) == 0 {
+// 		c.JSON(http.StatusOK, []Assignment{})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, assignments)
+// }
+
+// //	func parseEventDateTime(dateStr, timeStr string) (time.Time, error) {
+// //		layout := "2006-01-02 15:04" // Date + 24h time
+// //		return time.Parse(layout, fmt.Sprintf("%s %s", dateStr, timeStr))
+// //	}
+// func parseEventDateTime(dateStr, timeStr string) (time.Time, error) {
+// 	combined := dateStr + " " + timeStr
+// 	return time.ParseInLocation("2006-01-02 15:04", combined, time.Local)
+// }
+
+// func GetCurrentEvents(c *gin.Context) {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	curTime := time.Now()
+
+// 	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch events: " + err.Error()})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var events []Event
+// 	if err := cursor.All(ctx, &events); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse events: " + err.Error()})
+// 		return
+// 	}
+
+// 	currentEvents := make([]Event, 0) // Ensures JSON returns [] not null
+
+// 	for _, e := range events {
+// 		start, err1 := parseEventDateTime(e.StartDate, e.StartTime)
+// 		end, err2 := parseEventDateTime(e.EndDate, e.EndTime)
+
+// 		if err1 != nil || err2 != nil {
+// 			continue // skip malformed date/time entries
+// 		}
+
+// 		if curTime.After(start) && curTime.Before(end) {
+// 			currentEvents = append(currentEvents, e)
+// 		}
+// 	}
+
+// 	c.JSON(http.StatusOK, currentEvents)
+// }
+
+// func GetPastEvents(c *gin.Context) {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	curTime := time.Now()
+
+// 	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	var events []Event
+// 	if err := cursor.All(ctx, &events); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	var pastEvents []Event
+// 	for _, e := range events {
+// 		end, err := parseEventDateTime(e.EndDate, e.EndTime)
+// 		if err == nil && curTime.After(end) {
+// 			pastEvents = append(pastEvents, e)
+// 		}
+// 	}
+
+// 	c.JSON(http.StatusOK, pastEvents)
+// }
+
+// func GetUpcomingEvents(c *gin.Context) {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	curTime := time.Now()
+
+// 	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	var events []Event
+// 	if err := cursor.All(ctx, &events); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	var upcomingEvents []Event
+// 	for _, e := range events {
+// 		start, err := parseEventDateTime(e.StartDate, e.StartTime)
+// 		if err == nil && curTime.Before(start) {
+// 			upcomingEvents = append(upcomingEvents, e)
+// 		}
+// 	}
+// 	if upcomingEvents == nil {
+// 		upcomingEvents = []Event{} // or whatever your struct type is
+// 	}
+
+// 	c.JSON(http.StatusOK, upcomingEvents)
+// }
+
+// func EditTeacher(c *gin.Context) {
+// 	teacherIDStr := c.Param("id")
+// 	teacherID, err := primitive.ObjectIDFromHex(teacherIDStr)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// 		return
+// 	}
+
+// 	// Optional fields struct
+// 	type update1 struct {
+// 		Name           string `json:"name"`
+// 		Email          string `json:"email"`
+// 		DepartmentName string `json:"departmentname"`
+// 	}
+
+// 	var updateData update1
+// 	if err := c.ShouldBindJSON(&updateData); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	// Build update fields dynamically
+// 	updateFields := bson.M{}
+// 	if updateData.Name != "" {
+// 		updateFields["name"] = updateData.Name
+// 	}
+// 	if updateData.Email != "" {
+// 		updateFields["email"] = updateData.Email
+// 	}
+// 	if updateData.DepartmentName != "" {
+// 		updateFields["departmentname"] = updateData.DepartmentName
+// 	}
+
+// 	if len(updateFields) == 0 {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "No fields provided for update"})
+// 		return
+// 	}
+
+// 	update := bson.M{"$set": updateFields}
+
+// 	collection := db.Collection(teacherCollection)
+// 	result, err := collection.UpdateOne(ctx, bson.M{"_id": teacherID}, update)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher"})
+// 		return
+// 	}
+// 	if result.MatchedCount == 0 {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Teacher not found"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"message": "Teacher updated successfully"})
+// }
+
+// func DeleteTeacher(c *gin.Context) {
+// 	teacherIDStr := c.Param("id")
+// 	teacherID, err := primitive.ObjectIDFromHex(teacherIDStr)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+
+// 	// Delete teacher from teacherCollection
+// 	teacherColl := db.Collection(teacherCollection)
+// 	result, err := teacherColl.DeleteOne(ctx, bson.M{"_id": teacherID})
+// 	if err != nil || result.DeletedCount == 0 {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Teacher not found or delete failed"})
+// 		return
+// 	}
+
+// 	// Delete all assignments related to this teacher
+// 	assignmentColl := db.Collection(teacherAssignmentCollection)
+// 	_, err = assignmentColl.DeleteMany(ctx, bson.M{"teacher_id": teacherID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete teacher assignments"})
+// 		return
+// 	}
+
+// 	// Remove references from event's assignedteachers
+// 	eventColl := db.Collection(eventCollection)
+// 	_, err = eventColl.UpdateMany(ctx,
+// 		bson.M{},
+// 		bson.M{
+// 			"$pull": bson.M{
+// 				"assginedteachers": bson.M{"teacher_id": teacherID},
+// 			},
+// 		},
+// 	)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove references from events"})
+// 		return
+// 	}
+
+// 	// Optional: delete user record from userCollection
+// 	userColl := db.Collection(userCollection)
+// 	_, _ = userColl.DeleteOne(ctx, bson.M{"_id": teacherID})
+
+// 	c.JSON(http.StatusOK, gin.H{"message": "Teacher and related references deleted successfully"})
+// }
+
+// //notification system
+
+// func createNotification(teacherID, eventID, roleID, assignmentID primitive.ObjectID, eventName, roleName, teacherName string) error {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	notification := Notification{
+// 		ID:             primitive.NewObjectID(),
+// 		NotificationID: primitive.NewObjectID(),
+// 		TeacherID:      teacherID,
+// 		UserID:         teacherID, // Assuming teacher_id is same as user_id
+// 		Type:           "assignment",
+// 		Title:          "New Role Assignment",
+// 		Message:        fmt.Sprintf("You have been assigned to the role '%s' in event '%s'", roleName, eventName),
+// 		EventID:        eventID,
+// 		EventName:      eventName,
+// 		RoleID:         roleID,
+// 		RoleName:       roleName,
+// 		AssignmentID:   assignmentID,
+// 		IsRead:         false,
+// 		CreatedAt:      time.Now(),
+// 	}
+
+// 	collection := db.Collection("notifications")
+// 	_, err := collection.InsertOne(ctx, notification)
+// 	return err
+// }
+
+// //notifications
+
+// func GetTeacherNotifications(c *gin.Context) {
+// 	teacherID := c.Param("id")
+// 	objectID, err := primitive.ObjectIDFromHex(teacherID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection("notifications")
+// 	showRead := c.DefaultQuery("show_read", "true") == "true"
+
+// 	filter := bson.M{"teacher_id": objectID}
+// 	if !showRead {
+// 		filter["is_read"] = false
+// 	}
+
+// 	cursor, err := collection.Find(ctx, filter, options.Find().SetSort(bson.D{{"created_at", -1}}))
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var notifications []Notification
+// 	if err := cursor.All(ctx, &notifications); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	if notifications == nil {
+// 		c.JSON(http.StatusOK, []Notification{})
+// 		return
+// 	}
+// 	c.JSON(http.StatusOK, notifications)
+// }
+
+// // Mark notification as read
+// func MarkNotificationRead(c *gin.Context) {
+// 	notificationID := c.Param("id")
+// 	objectID, err := primitive.ObjectIDFromHex(notificationID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification ID"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection("notifications")
+// 	now := time.Now()
+
+// 	update := bson.M{
+// 		"$set": bson.M{
+// 			"is_read": true,
+// 			"read_at": &now,
+// 		},
+// 	}
+
+// 	result, err := collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	if result.MatchedCount == 0 {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"message": "Notification marked as read"})
+// }
+
+// // Delete notification
+// func DeleteNotification(c *gin.Context) {
+// 	notificationID := c.Param("id")
+// 	objectID, err := primitive.ObjectIDFromHex(notificationID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification ID"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection("notifications")
+// 	result, err := collection.DeleteOne(ctx, bson.M{"_id": objectID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	if result.DeletedCount == 0 {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{"message": "Notification deleted successfully"})
+// }
+
+// // Mark all notifications as read for a teacher
+// func MarkAllNotificationsRead(c *gin.Context) {
+// 	teacherID := c.Param("id")
+// 	objectID, err := primitive.ObjectIDFromHex(teacherID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection("notifications")
+// 	now := time.Now()
+
+// 	update := bson.M{
+// 		"$set": bson.M{
+// 			"is_read": true,
+// 			"read_at": &now,
+// 		},
+// 	}
+
+// 	filter := bson.M{
+// 		"teacher_id": objectID,
+// 		"is_read":    false,
+// 	}
+
+// 	result, err := collection.UpdateMany(ctx, filter, update)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message":       "All notifications marked as read",
+// 		"updated_count": result.ModifiedCount,
+// 	})
+// }
+
+// // Get notification count for a teacher
+// func GetNotificationCount(c *gin.Context) {
+// 	teacherID := c.Param("id")
+// 	objectID, err := primitive.ObjectIDFromHex(teacherID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+// 	defer cancel()
+
+// 	collection := db.Collection("notifications")
+// 	totalCount, err := collection.CountDocuments(ctx, bson.M{"teacher_id": objectID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	unreadCount, err := collection.CountDocuments(ctx, bson.M{
+// 		"teacher_id": objectID,
+// 		"is_read":    false,
+// 	})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"total_count":  totalCount,
+// 		"unread_count": unreadCount,
+// 	})
+// }
+
+// // report section
+// type DetailedAssignmentReport struct {
+// 	EventName      string `bson:"eventName"`
+// 	EventStartDate string `bson:"eventStartDate"`
+// 	EventEndDate   string `bson:"eventEndDate"`
+// 	TeacherName    string `bson:"teacherName"`
+// 	TeacherEmail   string `bson:"teacherEmail"`
+// 	DepartmentName string `bson:"departmentName"`
+// 	RoleName       string `bson:"roleName"`
+// 	RolePoint      int    `bson:"rolePoint"`
+// }
+
+// // GenerateEventReportCSV generates a CSV report for a specific event
+// func GenerateEventReportCSV(c *gin.Context) {
+// 	eventIDStr := c.Param("eventid")
+// 	eventID, err := primitive.ObjectIDFromHex(eventIDStr)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+
+// 	pipeline := mongo.Pipeline{
+// 		{{"$match", bson.M{"event_id": eventID}}},
+// 		{{"$lookup", bson.M{
+// 			"from":         "events",
+// 			"localField":   "event_id",
+// 			"foreignField": "_id",
+// 			"as":           "event",
+// 		}}},
+// 		{{"$unwind", "$event"}},
+// 		{{"$lookup", bson.M{
+// 			"from":         "teachers",
+// 			"localField":   "teacher_id",
+// 			"foreignField": "_id",
+// 			"as":           "teacher",
+// 		}}},
+// 		{{"$unwind", "$teacher"}},
+// 		{{"$lookup", bson.M{
+// 			"from":         "roles",
+// 			"localField":   "role_id",
+// 			"foreignField": "_id",
+// 			"as":           "role",
+// 		}}},
+// 		{{"$unwind", "$role"}},
+// 		{{"$project", bson.M{
+// 			"eventName":      "$event.name",
+// 			"eventStartDate": "$event.start_date",
+// 			"eventEndDate":   "$event.end_date",
+// 			"teacherName":    "$teacher.name",
+// 			"teacherEmail":   "$teacher.email",
+// 			"departmentName": "$teacher.departmentname",
+// 			"roleName":       "$role.name",
+// 			"rolePoint":      "$role.point",
+// 		}}},
+// 	}
+
+// 	cursor, err := db.Collection(teacherAssignmentCollection).Aggregate(ctx, pipeline)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate report"})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var results []DetailedAssignmentReport
+// 	if err := cursor.All(ctx, &results); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode report data"})
+// 		return
+// 	}
+
+// 	c.Header("Content-Type", "text/csv")
+// 	c.Header("Content-Disposition", "attachment; filename=event_report.csv")
+
+// 	writer := csv.NewWriter(c.Writer)
+// 	headers := []string{"Event Name", "Event Start Date", "Event End Date", "Teacher Name", "Teacher Email", "Department", "Assigned Role", "Points"}
+// 	writer.Write(headers)
+
+// 	for _, result := range results {
+// 		row := []string{
+// 			result.EventName,
+// 			result.EventStartDate,
+// 			result.EventEndDate,
+// 			result.TeacherName,
+// 			result.TeacherEmail,
+// 			result.DepartmentName,
+// 			result.RoleName,
+// 			strconv.Itoa(result.RolePoint),
+// 		}
+// 		writer.Write(row)
+// 	}
+
+// 	writer.Flush()
+// }
+
+// // GenerateDateRangeReportCSV generates a CSV for events within a date range
+// func GenerateDateRangeReportCSV(c *gin.Context) {
+// 	startDateStr := c.Query("start_date") // e.g., "2023-01-01"
+// 	endDateStr := c.Query("end_date")     // e.g., "2023-12-31"
+
+// 	if startDateStr == "" || endDateStr == "" {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Please provide start_date and end_date parameters."})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+
+// 	pipeline := mongo.Pipeline{
+// 		{{"$match", bson.M{
+// 			"start_date": bson.M{"$gte": startDateStr},
+// 			"end_date":   bson.M{"$lte": endDateStr},
+// 		}}},
+// 		{{"$lookup", bson.M{
+// 			"from":         "teacherAssignments",
+// 			"localField":   "_id",
+// 			"foreignField": "event_id",
+// 			"as":           "assignments",
+// 		}}},
+// 		{{"$unwind", "$assignments"}},
+// 		{{"$lookup", bson.M{
+// 			"from":         "teachers",
+// 			"localField":   "assignments.teacher_id",
+// 			"foreignField": "_id",
+// 			"as":           "teacher",
+// 		}}},
+// 		{{"$unwind", "$teacher"}},
+// 		{{"$lookup", bson.M{
+// 			"from":         "roles",
+// 			"localField":   "assignments.role_id",
+// 			"foreignField": "_id",
+// 			"as":           "role",
+// 		}}},
+// 		{{"$unwind", "$role"}},
+// 		{{"$project", bson.M{
+// 			"eventName":      "$name",
+// 			"eventStartDate": "$start_date",
+// 			"eventEndDate":   "$end_date",
+// 			"teacherName":    "$teacher.name",
+// 			"teacherEmail":   "$teacher.email",
+// 			"departmentName": "$teacher.departmentname",
+// 			"roleName":       "$role.name",
+// 			"rolePoint":      "$role.point",
+// 		}}},
+// 	}
+
+// 	cursor, err := db.Collection(eventCollection).Aggregate(ctx, pipeline)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate report"})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var results []DetailedAssignmentReport
+// 	if err := cursor.All(ctx, &results); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode report data"})
+// 		return
+// 	}
+
+// 	c.Header("Content-Type", "text/csv")
+// 	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=report_%s_to_%s.csv", startDateStr, endDateStr))
+
+// 	writer := csv.NewWriter(c.Writer)
+// 	headers := []string{"Event Name", "Event Start Date", "Event End Date", "Teacher Name", "Teacher Email", "Department", "Assigned Role", "Points"}
+// 	writer.Write(headers)
+
+// 	for _, result := range results {
+// 		row := []string{
+// 			result.EventName,
+// 			result.EventStartDate,
+// 			result.EventEndDate,
+// 			result.TeacherName,
+// 			result.TeacherEmail,
+// 			result.DepartmentName,
+// 			result.RoleName,
+// 			strconv.Itoa(result.RolePoint),
+// 		}
+// 		writer.Write(row)
+// 	}
+
+// 	writer.Flush()
+// }
+
+// // GenerateTeacherReportCSV generates a CSV report for a specific teacher
+// func GenerateTeacherReportCSV(c *gin.Context) {
+// 	teacherIDStr := c.Param("teacherid")
+// 	teacherID, err := primitive.ObjectIDFromHex(teacherIDStr)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+
+// 	pipeline := mongo.Pipeline{
+// 		{{"$match", bson.M{"teacher_id": teacherID}}},
+// 		{{"$lookup", bson.M{
+// 			"from":         "events",
+// 			"localField":   "event_id",
+// 			"foreignField": "_id",
+// 			"as":           "event",
+// 		}}},
+// 		{{"$unwind", "$event"}},
+// 		{{"$lookup", bson.M{
+// 			"from":         "teachers",
+// 			"localField":   "teacher_id",
+// 			"foreignField": "_id",
+// 			"as":           "teacher",
+// 		}}},
+// 		{{"$unwind", "$teacher"}},
+// 		{{"$lookup", bson.M{
+// 			"from":         "roles",
+// 			"localField":   "role_id",
+// 			"foreignField": "_id",
+// 			"as":           "role",
+// 		}}},
+// 		{{"$unwind", "$role"}},
+// 		{{"$project", bson.M{
+// 			"eventName":      "$event.name",
+// 			"eventStartDate": "$event.start_date",
+// 			"eventEndDate":   "$event.end_date",
+// 			"teacherName":    "$teacher.name",
+// 			"teacherEmail":   "$teacher.email",
+// 			"departmentName": "$teacher.departmentname",
+// 			"roleName":       "$role.name",
+// 			"rolePoint":      "$role.point",
+// 		}}},
+// 	}
+
+// 	cursor, err := db.Collection(teacherAssignmentCollection).Aggregate(ctx, pipeline)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate report"})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	var results []DetailedAssignmentReport
+// 	if err := cursor.All(ctx, &results); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode report data"})
+// 		return
+// 	}
+
+// 	c.Header("Content-Type", "text/csv")
+// 	c.Header("Content-Disposition", "attachment; filename=teacher_report.csv")
+
+// 	writer := csv.NewWriter(c.Writer)
+// 	headers := []string{"Teacher Name", "Teacher Email", "Department", "Event Name", "Event Start Date", "Event End Date", "Assigned Role", "Points"}
+// 	writer.Write(headers)
+
+// 	for _, result := range results {
+// 		row := []string{
+// 			result.TeacherName,
+// 			result.TeacherEmail,
+// 			result.DepartmentName,
+// 			result.EventName,
+// 			result.EventStartDate,
+// 			result.EventEndDate,
+// 			result.RoleName,
+// 			strconv.Itoa(result.RolePoint),
+// 		}
+// 		writer.Write(row)
+// 	}
+
+// 	writer.Flush()
+// }
+
+// // GetFacultyDashboard provides a consolidated view of the leaderboard, and current, past, and upcoming events.
+// func GetFacultyDashboard(c *gin.Context) {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+// 	defer cancel()
+
+// 	var dashboardResponse FacultyDashboardResponse
+
+// 	// Get Leaderboard
+// 	leaderboardPipeline := mongo.Pipeline{
+// 		{{"$lookup", bson.M{"from": teacherAssignmentCollection, "localField": "_id", "foreignField": "teacher_id", "as": "assignments"}}},
+// 		{{"$unwind", bson.M{"path": "$assignments", "preserveNullAndEmptyArrays": true}}},
+// 		{{"$lookup", bson.M{"from": roleCollection, "localField": "assignments.role_id", "foreignField": "_id", "as": "role"}}},
+// 		{{"$unwind", bson.M{"path": "$role", "preserveNullAndEmptyArrays": true}}},
+// 		{{"$group", bson.M{"_id": "$_id", "teacher_name": bson.M{"$first": "$name"}, "total_points": bson.M{"$sum": bson.M{"$ifNull": []interface{}{"$role.point", 0}}}}}},
+// 		{{"$sort", bson.M{"total_points": -1}}},
+// 		{{"$limit", 10}},
+// 	}
+// 	cursor, err := db.Collection(teacherCollection).Aggregate(ctx, leaderboardPipeline)
+// 	if err == nil {
+// 		var teachers []LeaderboardEntry
+// 		if cursor.All(ctx, &teachers) == nil {
+// 			dashboardResponse.Leaderboard = teachers
+// 		}
+// 		cursor.Close(ctx)
+// 	}
+
+// 	// Get All Events and Categorize them
+// 	curTime := time.Now()
+// 	cursor, err = db.Collection(eventCollection).Find(ctx, bson.M{})
+// 	if err == nil {
+// 		var events []Event
+// 		if cursor.All(ctx, &events) == nil {
+// 			currentEvents := make([]Event, 0)
+// 			pastEvents := make([]Event, 0)
+// 			upcomingEvents := make([]Event, 0)
+
+// 			for _, e := range events {
+// 				start, err1 := parseEventDateTime(e.StartDate, e.StartTime)
+// 				end, err2 := parseEventDateTime(e.EndDate, e.EndTime)
+
+// 				if err1 != nil || err2 != nil {
+// 					continue
+// 				}
+
+// 				if curTime.After(start) && curTime.Before(end) {
+// 					currentEvents = append(currentEvents, e)
+// 				} else if curTime.After(end) {
+// 					pastEvents = append(pastEvents, e)
+// 				} else if curTime.Before(start) {
+// 					upcomingEvents = append(upcomingEvents, e)
+// 				}
+// 			}
+// 			dashboardResponse.CurrentEvents = currentEvents
+// 			dashboardResponse.PastEvents = pastEvents
+// 			dashboardResponse.UpcomingEvents = upcomingEvents
+// 		}
+// 		cursor.Close(ctx)
+// 	}
+
+//		c.JSON(http.StatusOK, dashboardResponse)
+//	}
 package main
 
 import (
 	"context"
+	"encoding/csv"
 	"fmt"
+
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/xuri/excelize/v2"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -14,17 +3598,32 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// LeaderboardEntry defines the structure for a teacher's entry in the leaderboard.
+type LeaderboardEntry struct {
+	ID     primitive.ObjectID `json:"teacher_id" bson:"_id"`
+	Name   string             `json:"teacher_name" bson:"teacher_name"`
+	Points int                `json:"points" bson:"total_points"`
+}
+
+// FacultyDashboardResponse defines the structure for the faculty dashboard.
+type FacultyDashboardResponse struct {
+	Leaderboard    []LeaderboardEntry `json:"leaderboard"`
+	CurrentEvents  []Event            `json:"current_events"`
+	UpcomingEvents []Event            `json:"upcoming_events"`
+	PastEvents     []Event            `json:"past_events"`
+}
+
+// EditAssignmentRequest defines the structure for the request to edit a teacher assignment.
+type EditAssignmentRequest struct {
+	Points *int `json:"points"` // Use a pointer to distinguish between 0 and not provided
+}
+
 func Signup(c *gin.Context) {
 	var user User
 	if err := c.ShouldBindJSON(&user); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
-
-	// if user.Role != "admin" && user.Role != "teacher" {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role"})
-	// 	return
-	// }
 	user.Role = "faculty"
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -33,7 +3632,6 @@ func Signup(c *gin.Context) {
 	userCollectionRef := db.Collection(userCollection)
 	teacherCollectionRef := db.Collection(teacherCollection)
 
-	// Check if email already exists in users
 	count, err := userCollectionRef.CountDocuments(ctx, bson.M{"email": user.Email})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
@@ -44,20 +3642,16 @@ func Signup(c *gin.Context) {
 		return
 	}
 
-	// Check if a teacher exists with the same email
 	var existingTeacher Teacher
 	err = teacherCollectionRef.FindOne(ctx, bson.M{"email": user.Email}).Decode(&existingTeacher)
 	if err == nil {
-		// Teacher found, use Teacher's UserID as the new User's _id
 		user.ID = existingTeacher.UserID
 		user.UserID = existingTeacher.UserID
 	} else {
-		// No matching teacher, generate new ObjectID
 		user.ID = primitive.NewObjectID()
 		user.UserID = user.ID
 	}
 
-	// Hash password
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
@@ -65,7 +3659,6 @@ func Signup(c *gin.Context) {
 	}
 	user.Password = string(hashedPassword)
 
-	// Insert user with assigned ID
 	_, err = userCollectionRef.InsertOne(ctx, user)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create user"})
@@ -78,7 +3671,6 @@ func Signup(c *gin.Context) {
 	})
 }
 
-// Login handler
 func Login(c *gin.Context) {
 	type LoginRequest struct {
 		Email    string `json:"email"`
@@ -122,7 +3714,6 @@ func Login(c *gin.Context) {
 	})
 }
 
-// CreateEvent handler
 func CreateEvent(c *gin.Context) {
 	var event Event
 	if err := c.ShouldBindJSON(&event); err != nil {
@@ -145,7 +3736,6 @@ func CreateEvent(c *gin.Context) {
 	c.JSON(http.StatusOK, event)
 }
 
-// ListEvents handler
 func ListEvents(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -167,7 +3757,6 @@ func ListEvents(c *gin.Context) {
 	c.JSON(http.StatusOK, events)
 }
 
-// GetEventByID handler
 func GetEventByID(c *gin.Context) {
 	id := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -190,7 +3779,6 @@ func GetEventByID(c *gin.Context) {
 	c.JSON(http.StatusOK, event)
 }
 
-// UpdateEvent handler
 func UpdateEvent(c *gin.Context) {
 	id := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -229,74 +3817,38 @@ func UpdateEvent(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Event updated successfully"})
 }
 
+// GetTopTeachers (leaderboard) now prioritizes custom points.
 func GetTopTeachers(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// MongoDB aggregation pipeline to get top teachers
 	pipeline := mongo.Pipeline{
-		{
-			{"$lookup", bson.M{
-				"from":         teacherAssignmentCollection,
-				"localField":   "_id",
-				"foreignField": "teacher_id",
-				"as":           "assignments",
+		{{"$lookup", bson.M{"from": teacherAssignmentCollection, "localField": "_id", "foreignField": "teacher_id", "as": "assignments"}}},
+		{{"$unwind", bson.M{"path": "$assignments", "preserveNullAndEmptyArrays": true}}},
+		{{"$lookup", bson.M{"from": roleCollection, "localField": "assignments.role_id", "foreignField": "_id", "as": "role"}}},
+		{{"$unwind", bson.M{"path": "$role", "preserveNullAndEmptyArrays": true}}},
+		{{"$group", bson.M{
+			"_id":          "$_id",
+			"teacher_name": bson.M{"$first": "$name"},
+			// UPDATED: Use awarded points if they exist, otherwise fall back to role points.
+			"total_points": bson.M{"$sum": bson.M{
+				"$ifNull": []interface{}{"$assignments.points_awarded", "$role.point", 0},
 			}},
-		},
-		{
-			{"$unwind", bson.M{
-				"path":                       "$assignments",
-				"preserveNullAndEmptyArrays": true,
-			}},
-		},
-		{
-			{"$lookup", bson.M{
-				"from":         roleCollection,
-				"localField":   "assignments.role_id",
-				"foreignField": "_id",
-				"as":           "role",
-			}},
-		},
-		{
-			{"$unwind", bson.M{
-				"path":                       "$role",
-				"preserveNullAndEmptyArrays": true,
-			}},
-		},
-		{
-			{"$group", bson.M{
-				"_id":          "$_id",
-				"teacher_name": bson.M{"$first": "$name"},
-				"total_points": bson.M{"$sum": bson.M{
-					"$ifNull": []interface{}{"$role.point", 0},
-				}},
-			}},
-		},
-		{
-			{"$sort", bson.M{"total_points": -1}},
-		},
-		{
-			{"$limit", 10},
-		},
+		}}},
+		{{"$sort", bson.M{"total_points": -1}}},
+		{{"$limit", 10}},
 	}
 
-	collection := db.Collection(teacherCollection)
-	cursor, err := collection.Aggregate(ctx, pipeline)
+	cursor, err := db.Collection(teacherCollection).Aggregate(ctx, pipeline)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to aggregate top teachers: " + err.Error()})
 		return
 	}
 	defer cursor.Close(ctx)
 
-	type TopTeacher struct {
-		ID     primitive.ObjectID `json:"teacher_id" bson:"_id"`
-		Name   string             `json:"teacher_name" bson:"teacher_name"`
-		Points int                `json:"points" bson:"total_points"`
-	}
-
-	var teachers []TopTeacher
+	var teachers []LeaderboardEntry
 	if err := cursor.All(ctx, &teachers); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode top teachers: " + err.Error()})
 		return
 	}
 
@@ -305,14 +3857,12 @@ func GetTopTeachers(c *gin.Context) {
 
 func CreateRole(c *gin.Context) {
 	eventID := c.Param("eventid")
-
 	var role Role
 	if err := c.ShouldBindJSON(&role); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	// Convert eventID string param to ObjectID
 	oid, err := primitive.ObjectIDFromHex(eventID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
@@ -325,7 +3875,6 @@ func CreateRole(c *gin.Context) {
 	roleCollection := db.Collection("roles")
 	eventCollection := db.Collection("events")
 
-	// Retrieve the Event document to get event name BEFORE inserting role
 	var event Event
 	err = eventCollection.FindOne(ctx, bson.M{"_id": oid}).Decode(&event)
 	if err != nil {
@@ -333,28 +3882,18 @@ func CreateRole(c *gin.Context) {
 		return
 	}
 
-	// Assign all fields before inserting
 	role.ID = primitive.NewObjectID()
 	role.EventID = oid
-	role.EventName = event.Name // <- now it will get saved
+	role.EventName = event.Name
 	role.RoleID = role.ID
 
-	// Insert the new role document into roles collection
 	_, err = roleCollection.InsertOne(ctx, role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to insert role: " + err.Error()})
 		return
 	}
 
-	// Update the event document: push role object with id and name to the roles array
-	update := bson.M{
-		"$push": bson.M{
-			"roles": bson.M{
-				"id":   role.ID,
-				"name": role.Name,
-			},
-		},
-	}
+	update := bson.M{"$push": bson.M{"roles": bson.M{"id": role.ID, "name": role.Name}}}
 	_, err = eventCollection.UpdateOne(ctx, bson.M{"_id": oid}, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update event with role: " + err.Error()})
@@ -383,51 +3922,25 @@ func CreateTeacher(c *gin.Context) {
 		return
 	}
 
-	// Update user if email matches
 	userCollectionRef := db.Collection(userCollection)
 	filter := bson.M{"email": teacher.Email}
-	update := bson.M{"$set": bson.M{"user_id": teacher.ID}} // Add new field
+	update := bson.M{"$set": bson.M{"user_id": teacher.ID, "_id": teacher.ID}}
 	_, _ = userCollectionRef.UpdateOne(ctx, filter, update)
-
-	userCollectionRef1 := db.Collection(userCollection)
-	filter1 := bson.M{"email": teacher.Email}
-	update1 := bson.M{"$set": bson.M{"_id": teacher.ID}} // Add new field
-	_, _ = userCollectionRef1.UpdateOne(ctx, filter1, update1)
 
 	c.JSON(http.StatusOK, teacher)
 }
 
-// ListTeachers handler
 func ListTeachers(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// MongoDB aggregation pipeline to get teachers with department info
 	pipeline := mongo.Pipeline{
-		{
-			{"$lookup", bson.M{
-				"from":         departmentCollection,
-				"localField":   "department_id",
-				"foreignField": "_id",
-				"as":           "department",
-			}},
-		},
-		{
-			{"$unwind", bson.M{
-				"path":                       "$department",
-				"preserveNullAndEmptyArrays": true,
-			}},
-		},
-		{
-			{"$project", bson.M{
-				"_id":             1,
-				"name":            1,
-				"email":           1,
-				"profile_photo":   1,
-				"point":           1,
-				"department_name": "$departmentname",
-			}},
-		},
+		{{"$lookup", bson.M{"from": departmentCollection, "localField": "department_id", "foreignField": "_id", "as": "department"}}},
+		{{"$unwind", bson.M{"path": "$department", "preserveNullAndEmptyArrays": true}}},
+		{{"$project", bson.M{
+			"_id": 1, "name": 1, "email": 1, "profile_photo": 1, "point": 1,
+			"department_name": "$departmentname",
+		}}},
 	}
 
 	collection := db.Collection(teacherCollection)
@@ -438,16 +3951,7 @@ func ListTeachers(c *gin.Context) {
 	}
 	defer cursor.Close(ctx)
 
-	type TeacherWithDepartment struct {
-		ID             primitive.ObjectID `json:"id" bson:"_id"`
-		Name           string             `json:"name" bson:"name"`
-		Email          string             `json:"email" bson:"email"`
-		ProfilePhoto   string             `json:"profile_photo" bson:"profile_photo"`
-		DepartmentName string             `json:"department_name" bson:"department_name"`
-		Point          int                `json:"point" bson:"point"`
-	}
-
-	var teachers []TeacherWithDepartment
+	var teachers []bson.M
 	if err := cursor.All(ctx, &teachers); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -456,7 +3960,6 @@ func ListTeachers(c *gin.Context) {
 	c.JSON(http.StatusOK, teachers)
 }
 
-// AssignTeacherToRole assigns a teacher to a role and updates their points
 func AssignTeacherToRole(c *gin.Context) {
 	type AssignmentRequest struct {
 		TeacherID string `json:"teacher_id" binding:"required"`
@@ -470,86 +3973,49 @@ func AssignTeacherToRole(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Convert string IDs to ObjectIDs
-	teacherID, err := primitive.ObjectIDFromHex(req.TeacherID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID format"})
-		return
-	}
+	teacherID, _ := primitive.ObjectIDFromHex(req.TeacherID)
+	roleID, _ := primitive.ObjectIDFromHex(req.RoleID)
+	eventID, _ := primitive.ObjectIDFromHex(req.EventID)
 
-	roleID, err := primitive.ObjectIDFromHex(req.RoleID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID format"})
-		return
-	}
-
-	eventID, err := primitive.ObjectIDFromHex(req.EventID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
-		return
-	}
-
-	// Get the role details to obtain points and event name
 	roleCollection := db.Collection(roleCollection)
 	var role Role
-	err = roleCollection.FindOne(ctx, bson.M{"_id": roleID}).Decode(&role)
-	if err != nil {
+	if err := roleCollection.FindOne(ctx, bson.M{"_id": roleID}).Decode(&role); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Role not found"})
 		return
 	}
 
-	// Get the event name
 	eventCollection := db.Collection(eventCollection)
 	var event Event
-	err = eventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&event)
-	if err != nil {
+	if err := eventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&event); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
 		return
 	}
 
-	// Check if the teacher exists
 	teacherCollection := db.Collection(teacherCollection)
 	var teacher Teacher
-	err = teacherCollection.FindOne(ctx, bson.M{"_id": teacherID}).Decode(&teacher)
-	if err != nil {
+	if err := teacherCollection.FindOne(ctx, bson.M{"_id": teacherID}).Decode(&teacher); err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Teacher not found"})
 		return
 	}
 
-	// Check if this assignment already exists
 	assignmentCollection := db.Collection(teacherAssignmentCollection)
-	count, err := assignmentCollection.CountDocuments(ctx, bson.M{
-		"teacher_id": teacherID,
-		"role_id":    roleID,
-		"event_id":   eventID,
-	})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		return
-	}
+	count, _ := assignmentCollection.CountDocuments(ctx, bson.M{"teacher_id": teacherID, "role_id": roleID, "event_id": eventID})
 	if count > 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Teacher is already assigned to this role in this event"})
 		return
 	}
 
-	// Check if the role has reached its head count limit
-	assignedCount, err := assignmentCollection.CountDocuments(ctx, bson.M{"role_id": roleID})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		return
-	}
+	assignedCount, _ := assignmentCollection.CountDocuments(ctx, bson.M{"role_id": roleID})
 	if int(assignedCount) >= role.HeadCount {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Role has reached its maximum head count"})
 		return
 	}
-	id := primitive.NewObjectID()
-	// Create the assignment using the exact Assignment struct
+
 	assignment := Assignment{
-		ID:           id,
-		AssignmentID: id,
+		ID:           primitive.NewObjectID(),
 		EventID:      eventID,
 		EventName:    event.Name,
 		TeacherID:    teacherID,
@@ -558,66 +4024,102 @@ func AssignTeacherToRole(c *gin.Context) {
 		TeacherName:  teacher.Name,
 		TeacherEmail: teacher.Email,
 	}
+	assignment.AssignmentID = assignment.ID
 
-	_, err = assignmentCollection.InsertOne(ctx, assignment)
-	if err != nil {
+	if _, err := assignmentCollection.InsertOne(ctx, assignment); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create assignment"})
 		return
 	}
 
-	// Update teacher's points
-	_, err = teacherCollection.UpdateOne(
-		ctx,
-		bson.M{"_id": teacherID},
-		bson.M{"$inc": bson.M{"point": role.Point}},
-	)
-	if err != nil {
+	if _, err := teacherCollection.UpdateOne(ctx, bson.M{"_id": teacherID}, bson.M{"$inc": bson.M{"point": role.Point}}); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher points"})
 		return
 	}
 
-	// Add role reference to teacher's Assginedteachers array using the RoleRef struct
-	roleRef := RoleRef1{
-		ID:            roleID,
-		RoleName:      role.Name,
-		TeacherleName: teacher.Name,
-		Assignment_ID: assignment.ID,
-	}
-
-	_, err = eventCollection.UpdateOne(
-		ctx,
-		bson.M{"_id": eventID},
-		bson.M{"$push": bson.M{"assginedteachers": roleRef}},
-	)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher's assigned roles"})
+	roleRef := RoleRef1{ID: roleID, RoleName: role.Name, TeacherleName: teacher.Name, Assignment_ID: assignment.ID}
+	if _, err := eventCollection.UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"$push": bson.M{"assginedteachers": roleRef}}); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update event's assigned teachers"})
 		return
 	}
-	err = createNotification(
-		assignment.TeacherID,
-		assignment.EventID,
-		assignment.RoleID,
-		assignment.ID,
-		assignment.EventName,
-		assignment.RoleName,
-		assignment.TeacherName,
-	)
-	if err != nil {
-		// Log error but don't fail the assignment
+
+	if err := createNotification(teacherID, eventID, roleID, assignment.ID, event.Name, role.Name, teacher.Name); err != nil {
 		fmt.Printf("Failed to create notification: %v\n", err)
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":    "Teacher assigned to role successfully",
-		"assignment": assignment,
-	})
+	c.JSON(http.StatusOK, gin.H{"message": "Teacher assigned successfully", "assignment": assignment})
 }
 
-// DeleteRoleAssignment removes a teacher's role assignment with optional point handling
+// EditTeacherAssignment allows editing the points for a specific assignment.
+func EditTeacherAssignment(c *gin.Context) {
+	assignmentIDStr := c.Param("id")
+	assignmentID, err := primitive.ObjectIDFromHex(assignmentIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid assignment ID"})
+		return
+	}
+
+	var req EditAssignmentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+		return
+	}
+
+	if req.Points == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Points field is required for update"})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	assignmentCollection := db.Collection(teacherAssignmentCollection)
+	roleCollection := db.Collection(roleCollection)
+	teacherCollection := db.Collection(teacherCollection)
+
+	var originalAssignment Assignment
+	err = assignmentCollection.FindOne(ctx, bson.M{"_id": assignmentID}).Decode(&originalAssignment)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
+		return
+	}
+
+	var originalPoints int
+	if originalAssignment.PointsAwarded != nil {
+		originalPoints = *originalAssignment.PointsAwarded
+	} else {
+		var originalRole Role
+		err = roleCollection.FindOne(ctx, bson.M{"_id": originalAssignment.RoleID}).Decode(&originalRole)
+		if err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Could not find the original role to determine points"})
+			return
+		}
+		originalPoints = originalRole.Point
+	}
+
+	newPoints := *req.Points
+	pointDifference := newPoints - originalPoints
+
+	_, err = teacherCollection.UpdateOne(ctx, bson.M{"_id": originalAssignment.TeacherID}, bson.M{"$inc": bson.M{"point": pointDifference}})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher's total points"})
+		return
+	}
+
+	_, err = assignmentCollection.UpdateOne(ctx, bson.M{"_id": assignmentID}, bson.M{"$set": bson.M{"points_awarded": newPoints}})
+	if err != nil {
+		_, _ = teacherCollection.UpdateOne(ctx, bson.M{"_id": originalAssignment.TeacherID}, bson.M{"$inc": bson.M{"point": -pointDifference}})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to record the new points in the assignment"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Assignment points updated successfully"})
+}
+
+// DeleteRoleAssignment now correctly deducts custom points if they exist.
 func DeleteRoleAssignment(c *gin.Context) {
 	type DeleteAssignmentRequest struct {
 		AssignmentID string `json:"assignment_id" binding:"required"`
-		DeductPoints bool   `json:"deduct_points"` // Whether to deduct points from teacher
+		DeductPoints bool   `json:"deduct_points"`
 	}
 
 	var req DeleteAssignmentRequest
@@ -632,73 +4134,52 @@ func DeleteRoleAssignment(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Find the assignment first to get the role ID and teacher ID
 	assignmentCollection := db.Collection(teacherAssignmentCollection)
 	var assignment Assignment
 	err = assignmentCollection.FindOne(ctx, bson.M{"_id": assignmentID}).Decode(&assignment)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		}
+		c.JSON(http.StatusNotFound, gin.H{"error": "Assignment not found"})
 		return
 	}
 
-	// If we need to deduct points, we need to get the role's point value
 	if req.DeductPoints {
-		// Get the role to determine how many points to deduct
-		roleCollection := db.Collection(roleCollection)
-		var role Role
-		err = roleCollection.FindOne(ctx, bson.M{"_id": assignment.RoleID}).Decode(&role)
-		if err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Role not found"})
-			return
+		var pointsToDeduct int
+		if assignment.PointsAwarded != nil {
+			pointsToDeduct = *assignment.PointsAwarded
+		} else {
+			var role Role
+			err = db.Collection(roleCollection).FindOne(ctx, bson.M{"_id": assignment.RoleID}).Decode(&role)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not find role to determine points for deduction"})
+				return
+			}
+			pointsToDeduct = role.Point
 		}
 
-		// Deduct points from the teacher
-		teacherCollection := db.Collection(teacherCollection)
-		_, err = teacherCollection.UpdateOne(
-			ctx,
-			bson.M{"_id": assignment.TeacherID},
-			bson.M{"$inc": bson.M{"point": -role.Point}},
-		)
+		_, err = db.Collection(teacherCollection).UpdateOne(ctx, bson.M{"_id": assignment.TeacherID}, bson.M{"$inc": bson.M{"point": -pointsToDeduct}})
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher points"})
 			return
 		}
 	}
 
-	// Remove the role reference from teacher's assginedteachers array
-	// Match using the exact field name from the Teacher struct
-	eventCollection := db.Collection(eventCollection)
-	_, err = eventCollection.UpdateOne(
-		ctx,
-		bson.M{"_id": assignment.TeacherID},
-		bson.M{"$pull": bson.M{"assginedteachers": bson.M{"id": assignment.RoleID}}},
-	)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher's assigned roles"})
-		return
-	}
-
-	// Delete the assignment
 	_, err = assignmentCollection.DeleteOne(ctx, bson.M{"_id": assignmentID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete assignment"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message":         "Role assignment deleted successfully",
-		"deducted_points": req.DeductPoints,
-	})
+	_, err = db.Collection(eventCollection).UpdateOne(ctx, bson.M{"_id": assignment.EventID}, bson.M{"$pull": bson.M{"assginedteachers": bson.M{"assignment_id": assignment.ID}}})
+	if err != nil {
+		fmt.Printf("Warning: Failed to pull assignment reference from event %s: %v\n", assignment.EventID.Hex(), err)
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Role assignment deleted successfully", "deducted_points": req.DeductPoints})
 }
 
-// GetTeacherAssignments retrieves all role assignments for a specific teacher
 func GetTeacherAssignments(c *gin.Context) {
 	teacherID := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(teacherID)
@@ -724,15 +4205,9 @@ func GetTeacherAssignments(c *gin.Context) {
 		return
 	}
 
-	if len(assignments) == 0 {
-		c.JSON(http.StatusOK, []Assignment{})
-		return
-	}
-
 	c.JSON(http.StatusOK, assignments)
 }
 
-// GetRoleAssignments retrieves all teacher assignments for a specific role
 func GetRoleAssignments(c *gin.Context) {
 	roleID := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(roleID)
@@ -761,12 +4236,11 @@ func GetRoleAssignments(c *gin.Context) {
 	c.JSON(http.StatusOK, assignments)
 }
 
-//
-
+// DeleteEvent is updated to handle custom points for deduction.
 func DeleteEvent(c *gin.Context) {
 	type DeleteEventRequest struct {
 		EventID      string `json:"event_id" binding:"required"`
-		DeductPoints bool   `json:"deduct_points"` // Whether to deduct points from teachers
+		DeductPoints bool   `json:"deduct_points"`
 	}
 
 	var req DeleteEventRequest
@@ -781,88 +4255,66 @@ func DeleteEvent(c *gin.Context) {
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 
-	// Get the event details to confirm it exists
 	eventCollection := db.Collection(eventCollection)
 	var event Event
 	err = eventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&event)
 	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
-		} else {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Database error"})
-		}
+		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
 		return
 	}
 
-	// Find all roles associated with the event
-	roleCollection := db.Collection(roleCollection)
-	roleCursor, err := roleCollection.Find(ctx, bson.M{"event_id": eventID})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query roles"})
-		return
-	}
-	defer roleCursor.Close(ctx)
-
-	var roles []Role
-	if err := roleCursor.All(ctx, &roles); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse roles"})
-		return
-	}
-
-	// Process teacher assignments for each role
 	assignmentCollection := db.Collection(teacherAssignmentCollection)
-	teacherCollection := db.Collection(teacherCollection)
-
-	for _, role := range roles {
-		// Find all assignments for this role
-		assignmentCursor, err := assignmentCollection.Find(ctx, bson.M{"role_id": role.ID})
+	if req.DeductPoints {
+		// Find all assignments for the event
+		cursor, err := assignmentCollection.Find(ctx, bson.M{"event_id": eventID})
 		if err != nil {
-			continue // Skip if error
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve assignments for point deduction"})
+			return
+		}
+		var assignmentsToDelete []Assignment
+		if err = cursor.All(ctx, &assignmentsToDelete); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not decode assignments for point deduction"})
+			return
 		}
 
-		var assignments []Assignment
-		if err := assignmentCursor.All(ctx, &assignments); err != nil {
-			assignmentCursor.Close(ctx)
-			continue // Skip if error
-		}
-		assignmentCursor.Close(ctx)
+		// Deduct points for each assignment
+		for _, assignment := range assignmentsToDelete {
+			var pointsToDeduct int
+			if assignment.PointsAwarded != nil {
+				pointsToDeduct = *assignment.PointsAwarded
+			} else {
+				var role Role
+				err := db.Collection(roleCollection).FindOne(ctx, bson.M{"_id": assignment.RoleID}).Decode(&role)
+				if err == nil { // If role found, get points
+					pointsToDeduct = role.Point
+				}
+			}
 
-		// If deducting points is requested, update each teacher's points
-		if req.DeductPoints {
-			for _, assignment := range assignments {
-				_, _ = teacherCollection.UpdateOne(
-					ctx,
-					bson.M{"_id": assignment.TeacherID},
-					bson.M{"$inc": bson.M{"point": -role.Point}},
-				)
-
-				// Remove role reference from event's assginedteachers array
-				_, _ = eventCollection.UpdateOne(
-					ctx,
-					bson.M{"_id": eventID},
-					bson.M{"$pull": bson.M{"assginedteachers": bson.M{"assignment_id": assignment.ID}}},
-				)
+			if pointsToDeduct != 0 {
+				_, _ = db.Collection(teacherCollection).UpdateOne(ctx, bson.M{"_id": assignment.TeacherID}, bson.M{"$inc": bson.M{"point": -pointsToDeduct}})
 			}
 		}
-
-		// Delete all assignments for this role
-		_, _ = assignmentCollection.DeleteMany(ctx, bson.M{"role_id": role.ID})
 	}
 
-	// Delete all roles associated with the event
-	_, err = roleCollection.DeleteMany(ctx, bson.M{"event_id": eventID})
+	// Delete all assignments, roles, and finally the event
+	_, err = assignmentCollection.DeleteMany(ctx, bson.M{"event_id": eventID})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete roles"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete assignments for the event"})
 		return
 	}
 
-	// Finally delete the event itself
+	_, err = db.Collection(roleCollection).DeleteMany(ctx, bson.M{"event_id": eventID})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete roles for the event"})
+		return
+	}
+
 	_, err = eventCollection.DeleteOne(ctx, bson.M{"_id": eventID})
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete event"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete the event"})
 		return
 	}
 
@@ -873,7 +4325,6 @@ func DeleteEvent(c *gin.Context) {
 	})
 }
 
-// GetRolesByEventID retrieves all roles for a specific event
 func GetRolesByEventID(c *gin.Context) {
 	eventID := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(eventID)
@@ -902,84 +4353,36 @@ func GetRolesByEventID(c *gin.Context) {
 	c.JSON(http.StatusOK, roles)
 }
 
-// GetTeacherRolesInEvent retrieves all roles assigned to a teacher in a specific event
 func GetTeacherRolesInEvent(c *gin.Context) {
 	teacherID := c.Param("teacherid")
 	eventID := c.Param("eventid")
 
-	teacherObjID, err := primitive.ObjectIDFromHex(teacherID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID format"})
-		return
-	}
-
-	eventObjID, err := primitive.ObjectIDFromHex(eventID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
-		return
-	}
+	teacherObjID, _ := primitive.ObjectIDFromHex(teacherID)
+	eventObjID, _ := primitive.ObjectIDFromHex(eventID)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Find all assignments for this teacher in this event
-	assignmentCollection := db.Collection(teacherAssignmentCollection)
-
-	// MongoDB aggregation pipeline to get detailed role information
 	pipeline := mongo.Pipeline{
-		{
-			{"$match", bson.M{
-				"teacher_id": teacherObjID,
-				"event_id":   eventObjID,
-			}},
-		},
-		{
-			{"$lookup", bson.M{
-				"from":         roleCollection,
-				"localField":   "role_id",
-				"foreignField": "_id",
-				"as":           "role_details",
-			}},
-		},
-		{
-			{"$unwind", bson.M{
-				"path":                       "$role_details",
-				"preserveNullAndEmptyArrays": false,
-			}},
-		},
-		{
-			{"$project", bson.M{
-				"_id":              1,
-				"event_id":         1,
-				"event_name":       "$eventname",
-				"teacher_id":       1,
-				"role_id":          1,
-				"role_name":        "$role_details.name",
-				"role_description": "$role_details.description",
-				"role_point":       "$role_details.point",
-			}},
-		},
+		{{"$match", bson.M{"teacher_id": teacherObjID, "event_id": eventObjID}}},
+		{{"$lookup", bson.M{"from": roleCollection, "localField": "role_id", "foreignField": "_id", "as": "role_details"}}},
+		{{"$unwind", "$role_details"}},
+		{{"$project", bson.M{
+			"_id": 1, "event_id": 1, "event_name": "$eventname", "teacher_id": 1, "role_id": 1,
+			"role_name": "$role_details.name", "role_description": "$role_details.description",
+			// UPDATED: Show actual points awarded.
+			"role_point": bson.M{"$ifNull": []interface{}{"$points_awarded", "$role_details.point"}},
+		}}},
 	}
 
-	cursor, err := assignmentCollection.Aggregate(ctx, pipeline)
+	cursor, err := db.Collection(teacherAssignmentCollection).Aggregate(ctx, pipeline)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 	defer cursor.Close(ctx)
 
-	type TeacherRoleAssignment struct {
-		ID              primitive.ObjectID `json:"id" bson:"_id"`
-		EventID         primitive.ObjectID `json:"event_id" bson:"event_id"`
-		EventName       string             `json:"event_name" bson:"event_name"`
-		TeacherID       primitive.ObjectID `json:"teacher_id" bson:"teacher_id"`
-		RoleID          primitive.ObjectID `json:"role_id" bson:"role_id"`
-		RoleName        string             `json:"role_name" bson:"role_name"`
-		RoleDescription string             `json:"role_description" bson:"role_description"`
-		RolePoint       int                `json:"role_point" bson:"role_point"`
-	}
-
-	var assignments []TeacherRoleAssignment
+	var assignments []bson.M
 	if err := cursor.All(ctx, &assignments); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -999,15 +4402,8 @@ func GetAssignedTeachersForEvent(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Ensure you're using the correct collection name
-	assignmentCollection := db.Collection("teacherAssignments") // Make sure this matches insert function
-
-	// Debug log to confirm which ID is being queried
-	fmt.Println("Fetching assignments for Event ID:", eventID.Hex())
-
-	// Query assignments with matching event_id
-	filter := bson.M{"event_id": eventID}
-	cursor, err := assignmentCollection.Find(ctx, filter)
+	assignmentCollection := db.Collection("teacherAssignments")
+	cursor, err := assignmentCollection.Find(ctx, bson.M{"event_id": eventID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch assignments"})
 		return
@@ -1020,121 +4416,86 @@ func GetAssignedTeachersForEvent(c *gin.Context) {
 		return
 	}
 
-	// Log how many results were found
-	fmt.Printf("Found %d assignments for event\n", len(assignments))
-
-	if len(assignments) == 0 {
-		c.JSON(http.StatusOK, []Assignment{})
-		return
-	}
-
 	c.JSON(http.StatusOK, assignments)
 }
 
-//	func parseEventDateTime(dateStr, timeStr string) (time.Time, error) {
-//		layout := "2006-01-02 15:04" // Date + 24h time
-//		return time.Parse(layout, fmt.Sprintf("%s %s", dateStr, timeStr))
-//	}
 func parseEventDateTime(dateStr, timeStr string) (time.Time, error) {
-	combined := dateStr + " " + timeStr
-	return time.ParseInLocation("2006-01-02 15:04", combined, time.Local)
+	if dateStr == "" || timeStr == "" {
+		return time.Time{}, fmt.Errorf("date or time string is empty")
+	}
+	return time.ParseInLocation("2006-01-02 15:04", dateStr+" "+timeStr, time.Local)
 }
 
 func GetCurrentEvents(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	curTime := time.Now()
-
 	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch events: " + err.Error()})
 		return
 	}
-	defer cursor.Close(ctx)
-
 	var events []Event
 	if err := cursor.All(ctx, &events); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse events: " + err.Error()})
 		return
 	}
-
-	currentEvents := make([]Event, 0) // Ensures JSON returns [] not null
-
+	currentEvents := make([]Event, 0)
 	for _, e := range events {
 		start, err1 := parseEventDateTime(e.StartDate, e.StartTime)
 		end, err2 := parseEventDateTime(e.EndDate, e.EndTime)
-
-		if err1 != nil || err2 != nil {
-			continue // skip malformed date/time entries
-		}
-
-		if curTime.After(start) && curTime.Before(end) {
+		if err1 == nil && err2 == nil && curTime.After(start) && curTime.Before(end) {
 			currentEvents = append(currentEvents, e)
 		}
 	}
-
 	c.JSON(http.StatusOK, currentEvents)
 }
 
 func GetPastEvents(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	curTime := time.Now()
-
 	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	var events []Event
 	if err := cursor.All(ctx, &events); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	var pastEvents []Event
+	pastEvents := make([]Event, 0)
 	for _, e := range events {
 		end, err := parseEventDateTime(e.EndDate, e.EndTime)
 		if err == nil && curTime.After(end) {
 			pastEvents = append(pastEvents, e)
 		}
 	}
-
 	c.JSON(http.StatusOK, pastEvents)
 }
 
 func GetUpcomingEvents(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	curTime := time.Now()
-
 	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	var events []Event
 	if err := cursor.All(ctx, &events); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	var upcomingEvents []Event
+	upcomingEvents := make([]Event, 0)
 	for _, e := range events {
 		start, err := parseEventDateTime(e.StartDate, e.StartTime)
 		if err == nil && curTime.Before(start) {
 			upcomingEvents = append(upcomingEvents, e)
 		}
 	}
-	if upcomingEvents == nil {
-		upcomingEvents = []Event{} // or whatever your struct type is
-	}
-
 	c.JSON(http.StatusOK, upcomingEvents)
 }
 
@@ -1146,14 +4507,11 @@ func EditTeacher(c *gin.Context) {
 		return
 	}
 
-	// Optional fields struct
-	type update1 struct {
+	var updateData struct {
 		Name           string `json:"name"`
 		Email          string `json:"email"`
 		DepartmentName string `json:"departmentname"`
 	}
-
-	var updateData update1
 	if err := c.ShouldBindJSON(&updateData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -1162,7 +4520,6 @@ func EditTeacher(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	// Build update fields dynamically
 	updateFields := bson.M{}
 	if updateData.Name != "" {
 		updateFields["name"] = updateData.Name
@@ -1173,16 +4530,12 @@ func EditTeacher(c *gin.Context) {
 	if updateData.DepartmentName != "" {
 		updateFields["departmentname"] = updateData.DepartmentName
 	}
-
 	if len(updateFields) == 0 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "No fields provided for update"})
 		return
 	}
 
-	update := bson.M{"$set": updateFields}
-
-	collection := db.Collection(teacherCollection)
-	result, err := collection.UpdateOne(ctx, bson.M{"_id": teacherID}, update)
+	result, err := db.Collection(teacherCollection).UpdateOne(ctx, bson.M{"_id": teacherID}, bson.M{"$set": updateFields})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher"})
 		return
@@ -1202,59 +4555,30 @@ func DeleteTeacher(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
 		return
 	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	// Delete teacher from teacherCollection
-	teacherColl := db.Collection(teacherCollection)
-	result, err := teacherColl.DeleteOne(ctx, bson.M{"_id": teacherID})
+	result, err := db.Collection(teacherCollection).DeleteOne(ctx, bson.M{"_id": teacherID})
 	if err != nil || result.DeletedCount == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Teacher not found or delete failed"})
 		return
 	}
 
-	// Delete all assignments related to this teacher
-	assignmentColl := db.Collection(teacherAssignmentCollection)
-	_, err = assignmentColl.DeleteMany(ctx, bson.M{"teacher_id": teacherID})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete teacher assignments"})
-		return
-	}
-
-	// Remove references from event's assignedteachers
-	eventColl := db.Collection(eventCollection)
-	_, err = eventColl.UpdateMany(ctx,
-		bson.M{},
-		bson.M{
-			"$pull": bson.M{
-				"assginedteachers": bson.M{"teacher_id": teacherID},
-			},
-		},
-	)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to remove references from events"})
-		return
-	}
-
-	// Optional: delete user record from userCollection
-	userColl := db.Collection(userCollection)
-	_, _ = userColl.DeleteOne(ctx, bson.M{"_id": teacherID})
+	_, _ = db.Collection(teacherAssignmentCollection).DeleteMany(ctx, bson.M{"teacher_id": teacherID})
+	_, _ = db.Collection(eventCollection).UpdateMany(ctx, bson.M{}, bson.M{"$pull": bson.M{"assginedteachers": bson.M{"teacher_id": teacherID}}})
+	_, _ = db.Collection(userCollection).DeleteOne(ctx, bson.M{"_id": teacherID})
 
 	c.JSON(http.StatusOK, gin.H{"message": "Teacher and related references deleted successfully"})
 }
 
-//notification system
-
 func createNotification(teacherID, eventID, roleID, assignmentID primitive.ObjectID, eventName, roleName, teacherName string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
 	notification := Notification{
 		ID:             primitive.NewObjectID(),
 		NotificationID: primitive.NewObjectID(),
 		TeacherID:      teacherID,
-		UserID:         teacherID, // Assuming teacher_id is same as user_id
+		UserID:         teacherID,
 		Type:           "assignment",
 		Title:          "New Role Assignment",
 		Message:        fmt.Sprintf("You have been assigned to the role '%s' in event '%s'", roleName, eventName),
@@ -1266,13 +4590,9 @@ func createNotification(teacherID, eventID, roleID, assignmentID primitive.Objec
 		IsRead:         false,
 		CreatedAt:      time.Now(),
 	}
-
-	collection := db.Collection("notifications")
-	_, err := collection.InsertOne(ctx, notification)
+	_, err := db.Collection("notifications").InsertOne(ctx, notification)
 	return err
 }
-
-//notifications
 
 func GetTeacherNotifications(c *gin.Context) {
 	teacherID := c.Param("id")
@@ -1285,15 +4605,13 @@ func GetTeacherNotifications(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := db.Collection("notifications")
 	showRead := c.DefaultQuery("show_read", "true") == "true"
-
 	filter := bson.M{"teacher_id": objectID}
 	if !showRead {
 		filter["is_read"] = false
 	}
 
-	cursor, err := collection.Find(ctx, filter, options.Find().SetSort(bson.D{{"created_at", -1}}))
+	cursor, err := db.Collection("notifications").Find(ctx, filter, options.Find().SetSort(bson.D{{"created_at", -1}}))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -1305,7 +4623,6 @@ func GetTeacherNotifications(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	if notifications == nil {
 		c.JSON(http.StatusOK, []Notification{})
 		return
@@ -1313,7 +4630,6 @@ func GetTeacherNotifications(c *gin.Context) {
 	c.JSON(http.StatusOK, notifications)
 }
 
-// Mark notification as read
 func MarkNotificationRead(c *gin.Context) {
 	notificationID := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(notificationID)
@@ -1321,35 +4637,23 @@ func MarkNotificationRead(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid notification ID"})
 		return
 	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := db.Collection("notifications")
 	now := time.Now()
-
-	update := bson.M{
-		"$set": bson.M{
-			"is_read": true,
-			"read_at": &now,
-		},
-	}
-
-	result, err := collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+	update := bson.M{"$set": bson.M{"is_read": true, "read_at": &now}}
+	result, err := db.Collection("notifications").UpdateOne(ctx, bson.M{"_id": objectID}, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	if result.MatchedCount == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found"})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{"message": "Notification marked as read"})
 }
 
-// Delete notification
 func DeleteNotification(c *gin.Context) {
 	notificationID := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(notificationID)
@@ -1361,22 +4665,18 @@ func DeleteNotification(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := db.Collection("notifications")
-	result, err := collection.DeleteOne(ctx, bson.M{"_id": objectID})
+	result, err := db.Collection("notifications").DeleteOne(ctx, bson.M{"_id": objectID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
 	if result.DeletedCount == 0 {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Notification not found"})
 		return
 	}
-
 	c.JSON(http.StatusOK, gin.H{"message": "Notification deleted successfully"})
 }
 
-// Mark all notifications as read for a teacher
 func MarkAllNotificationsRead(c *gin.Context) {
 	teacherID := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(teacherID)
@@ -1388,34 +4688,17 @@ func MarkAllNotificationsRead(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	collection := db.Collection("notifications")
 	now := time.Now()
-
-	update := bson.M{
-		"$set": bson.M{
-			"is_read": true,
-			"read_at": &now,
-		},
-	}
-
-	filter := bson.M{
-		"teacher_id": objectID,
-		"is_read":    false,
-	}
-
-	result, err := collection.UpdateMany(ctx, filter, update)
+	update := bson.M{"$set": bson.M{"is_read": true, "read_at": &now}}
+	filter := bson.M{"teacher_id": objectID, "is_read": false}
+	result, err := db.Collection("notifications").UpdateMany(ctx, filter, update)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-
-	c.JSON(http.StatusOK, gin.H{
-		"message":       "All notifications marked as read",
-		"updated_count": result.ModifiedCount,
-	})
+	c.JSON(http.StatusOK, gin.H{"message": "All notifications marked as read", "updated_count": result.ModifiedCount})
 }
 
-// Get notification count for a teacher
 func GetNotificationCount(c *gin.Context) {
 	teacherID := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(teacherID)
@@ -1428,23 +4711,1134 @@ func GetNotificationCount(c *gin.Context) {
 	defer cancel()
 
 	collection := db.Collection("notifications")
-	totalCount, err := collection.CountDocuments(ctx, bson.M{"teacher_id": objectID})
+	totalCount, _ := collection.CountDocuments(ctx, bson.M{"teacher_id": objectID})
+	unreadCount, _ := collection.CountDocuments(ctx, bson.M{"teacher_id": objectID, "is_read": false})
+
+	c.JSON(http.StatusOK, gin.H{"total_count": totalCount, "unread_count": unreadCount})
+}
+
+type DetailedAssignmentReport struct {
+	EventName      string `bson:"eventName"`
+	EventStartDate string `bson:"eventStartDate"`
+	EventEndDate   string `bson:"eventEndDate"`
+	TeacherName    string `bson:"teacherName"`
+	TeacherEmail   string `bson:"teacherEmail"`
+	DepartmentName string `bson:"departmentName"`
+	RoleName       string `bson:"roleName"`
+	RolePoint      int    `bson:"rolePoint"`
+}
+
+// GenerateEventReportCSV now shows the actual points awarded in the report.
+func GenerateEventReportCSV(c *gin.Context) {
+	eventIDStr := c.Param("eventid")
+	eventID, err := primitive.ObjectIDFromHex(eventIDStr)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID"})
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pipeline := mongo.Pipeline{
+		{{"$match", bson.M{"event_id": eventID}}},
+		{{"$lookup", bson.M{"from": "events", "localField": "event_id", "foreignField": "_id", "as": "event"}}},
+		{{"$unwind", "$event"}},
+		{{"$lookup", bson.M{"from": "teachers", "localField": "teacher_id", "foreignField": "_id", "as": "teacher"}}},
+		{{"$unwind", "$teacher"}},
+		{{"$lookup", bson.M{"from": "roles", "localField": "role_id", "foreignField": "_id", "as": "role"}}},
+		{{"$unwind", "$role"}},
+		{{"$project", bson.M{
+			"eventName": "$event.name", "eventStartDate": "$event.start_date", "eventEndDate": "$event.end_date",
+			"teacherName": "$teacher.name", "teacherEmail": "$teacher.email", "departmentName": "$teacher.departmentname",
+			"roleName":  "$role.name",
+			"rolePoint": bson.M{"$ifNull": []interface{}{"$points_awarded", "$role.point"}},
+		}}},
+	}
+	cursor, err := db.Collection(teacherAssignmentCollection).Aggregate(ctx, pipeline)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate report"})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var results []DetailedAssignmentReport
+	if err := cursor.All(ctx, &results); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode report data"})
+		return
+	}
+	c.Header("Content-Type", "text/csv")
+	c.Header("Content-Disposition", "attachment; filename=event_report.csv")
+	writer := csv.NewWriter(c.Writer)
+	headers := []string{"Event Name", "Event Start Date", "Event End Date", "Teacher Name", "Teacher Email", "Department", "Assigned Role", "Points Awarded"}
+	_ = writer.Write(headers)
+	for _, result := range results {
+		row := []string{result.EventName, result.EventStartDate, result.EventEndDate, result.TeacherName, result.TeacherEmail, result.DepartmentName, result.RoleName, strconv.Itoa(result.RolePoint)}
+		_ = writer.Write(row)
+	}
+	writer.Flush()
+}
+
+// GenerateDateRangeReportCSV is updated to handle custom points.
+func GenerateDateRangeReportCSV(c *gin.Context) {
+	startDateStr := c.Query("start_date")
+	endDateStr := c.Query("end_date")
+	if startDateStr == "" || endDateStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Please provide start_date and end_date parameters."})
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pipeline := mongo.Pipeline{
+		{{"$match", bson.M{"start_date": bson.M{"$gte": startDateStr}, "end_date": bson.M{"$lte": endDateStr}}}},
+		{{"$lookup", bson.M{"from": "teacherAssignments", "localField": "_id", "foreignField": "event_id", "as": "assignments"}}},
+		{{"$unwind", "$assignments"}},
+		{{"$lookup", bson.M{"from": "teachers", "localField": "assignments.teacher_id", "foreignField": "_id", "as": "teacher"}}},
+		{{"$unwind", "$teacher"}},
+		{{"$lookup", bson.M{"from": "roles", "localField": "assignments.role_id", "foreignField": "_id", "as": "role"}}},
+		{{"$unwind", "$role"}},
+		{{"$project", bson.M{
+			"eventName": "$name", "eventStartDate": "$start_date", "eventEndDate": "$end_date",
+			"teacherName": "$teacher.name", "teacherEmail": "$teacher.email", "departmentName": "$teacher.departmentname",
+			"roleName":  "$role.name",
+			"rolePoint": bson.M{"$ifNull": []interface{}{"$assignments.points_awarded", "$role.point"}},
+		}}},
+	}
+
+	cursor, err := db.Collection(eventCollection).Aggregate(ctx, pipeline)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate report"})
+		return
+	}
+	defer cursor.Close(ctx)
+	var results []DetailedAssignmentReport
+	if err := cursor.All(ctx, &results); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode report data"})
+		return
+	}
+	c.Header("Content-Type", "text/csv")
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=report_%s_to_%s.csv", startDateStr, endDateStr))
+	writer := csv.NewWriter(c.Writer)
+	headers := []string{"Event Name", "Event Start Date", "Event End Date", "Teacher Name", "Teacher Email", "Department", "Assigned Role", "Points"}
+	_ = writer.Write(headers)
+	for _, result := range results {
+		row := []string{result.EventName, result.EventStartDate, result.EventEndDate, result.TeacherName, result.TeacherEmail, result.DepartmentName, result.RoleName, strconv.Itoa(result.RolePoint)}
+		_ = writer.Write(row)
+	}
+	writer.Flush()
+}
+
+// GenerateTeacherReportCSV is updated to handle custom points.
+func GenerateTeacherReportCSV(c *gin.Context) {
+	teacherIDStr := c.Param("teacherid")
+	teacherID, err := primitive.ObjectIDFromHex(teacherIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid teacher ID"})
+		return
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	pipeline := mongo.Pipeline{
+		{{"$match", bson.M{"teacher_id": teacherID}}},
+		{{"$lookup", bson.M{"from": "events", "localField": "event_id", "foreignField": "_id", "as": "event"}}},
+		{{"$unwind", "$event"}},
+		{{"$lookup", bson.M{"from": "teachers", "localField": "teacher_id", "foreignField": "_id", "as": "teacher"}}},
+		{{"$unwind", "$teacher"}},
+		{{"$lookup", bson.M{"from": "roles", "localField": "role_id", "foreignField": "_id", "as": "role"}}},
+		{{"$unwind", "$role"}},
+		{{"$project", bson.M{
+			"eventName":      "$event.name",
+			"eventStartDate": "$event.start_date",
+			"eventEndDate":   "$event.end_date",
+			"teacherName":    "$teacher.name", "teacherEmail": "$teacher.email", "departmentName": "$teacher.departmentname",
+			"roleName":  "$role.name",
+			"rolePoint": bson.M{"$ifNull": []interface{}{"$points_awarded", "$role.point"}},
+		}}},
+	}
+
+	cursor, err := db.Collection(teacherAssignmentCollection).Aggregate(ctx, pipeline)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate report"})
+		return
+	}
+	defer cursor.Close(ctx)
+	var results []DetailedAssignmentReport
+	if err := cursor.All(ctx, &results); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode report data"})
+		return
+	}
+	c.Header("Content-Type", "text/csv")
+	c.Header("Content-Disposition", "attachment; filename=teacher_report.csv")
+	writer := csv.NewWriter(c.Writer)
+	headers := []string{"Teacher Name", "Teacher Email", "Department", "Event Name", "Event Start Date", "Event End Date", "Assigned Role", "Points"}
+	_ = writer.Write(headers)
+	for _, result := range results {
+		row := []string{result.TeacherName, result.TeacherEmail, result.DepartmentName, result.EventName, result.EventStartDate, result.EventEndDate, result.RoleName, strconv.Itoa(result.RolePoint)}
+		_ = writer.Write(row)
+	}
+	writer.Flush()
+}
+
+// GetFacultyDashboard is updated to handle custom points for the leaderboard.
+func GetFacultyDashboard(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	var dashboardResponse FacultyDashboardResponse
+	var err error
+
+	// Channel to receive leaderboard results
+	leaderboardChan := make(chan []LeaderboardEntry)
+	errChan := make(chan error, 2) // Buffered channel for errors
+
+	go func() {
+		leaderboardPipeline := mongo.Pipeline{
+			{{"$lookup", bson.M{"from": teacherAssignmentCollection, "localField": "_id", "foreignField": "teacher_id", "as": "assignments"}}},
+			{{"$unwind", bson.M{"path": "$assignments", "preserveNullAndEmptyArrays": true}}},
+			{{"$lookup", bson.M{"from": roleCollection, "localField": "assignments.role_id", "foreignField": "_id", "as": "role"}}},
+			{{"$unwind", bson.M{"path": "$role", "preserveNullAndEmptyArrays": true}}},
+			{{"$group", bson.M{
+				"_id": "$_id", "teacher_name": bson.M{"$first": "$name"},
+				"total_points": bson.M{"$sum": bson.M{"$ifNull": []interface{}{"$assignments.points_awarded", "$role.point", 0}}},
+			}}},
+			{{"$sort", bson.M{"total_points": -1}}},
+			{{"$limit", 10}},
+		}
+		cursor, err := db.Collection(teacherCollection).Aggregate(ctx, leaderboardPipeline)
+		if err != nil {
+			errChan <- err
+			return
+		}
+		defer cursor.Close(ctx)
+		var teachers []LeaderboardEntry
+		if err = cursor.All(ctx, &teachers); err != nil {
+			errChan <- err
+			return
+		}
+		leaderboardChan <- teachers
+	}()
+
+	cursor, err := db.Collection(eventCollection).Find(ctx, bson.M{})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch events"})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var events []Event
+	if err = cursor.All(ctx, &events); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to parse events"})
 		return
 	}
 
-	unreadCount, err := collection.CountDocuments(ctx, bson.M{
-		"teacher_id": objectID,
-		"is_read":    false,
-	})
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+	curTime := time.Now()
+	currentEvents := make([]Event, 0)
+	pastEvents := make([]Event, 0)
+	upcomingEvents := make([]Event, 0)
+	for _, e := range events {
+		start, err1 := parseEventDateTime(e.StartDate, e.StartTime)
+		end, err2 := parseEventDateTime(e.EndDate, e.EndTime)
+		if err1 == nil && err2 == nil {
+			if curTime.After(start) && curTime.Before(end) {
+				currentEvents = append(currentEvents, e)
+			} else if curTime.After(end) {
+				pastEvents = append(pastEvents, e)
+			} else if curTime.Before(start) {
+				upcomingEvents = append(upcomingEvents, e)
+			}
+		}
+	}
+	dashboardResponse.CurrentEvents = currentEvents
+	dashboardResponse.PastEvents = pastEvents
+	dashboardResponse.UpcomingEvents = upcomingEvents
+
+	// Wait for leaderboard results or an error
+	select {
+	case leaderboard := <-leaderboardChan:
+		dashboardResponse.Leaderboard = leaderboard
+	case err := <-errChan:
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate leaderboard: " + err.Error()})
 		return
+	case <-ctx.Done():
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Request timed out"})
+		return
+	}
+
+	c.JSON(http.StatusOK, dashboardResponse)
+}
+
+// func CreateEventFromExcel(c *gin.Context) {
+// 	file, err := c.FormFile("excel_file")
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Excel file is required"})
+// 		return
+// 	}
+
+// 	f, err := file.Open()
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open the uploaded file"})
+// 		return
+// 	}
+// 	defer f.Close()
+
+// 	excelFile, err := excelize.OpenReader(f)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read the Excel file"})
+// 		return
+// 	}
+
+// 	// --- 1. Parse and Create the Event ---
+// 	eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
+// 	startDate, _ := excelFile.GetCellValue("EventDetails", "B2")
+// 	startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
+// 	endDate, _ := excelFile.GetCellValue("EventDetails", "B4")
+// 	endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
+// 	description, _ := excelFile.GetCellValue("EventDetails", "B6")
+
+// 	if eventName == "" || startDate == "" || startTime == "" || endDate == "" || endTime == "" {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled."})
+// 		return
+// 	}
+
+// 	event := Event{
+// 		ID:               primitive.NewObjectID(),
+// 		Name:             eventName,
+// 		StartDate:        startDate,
+// 		StartTime:        startTime,
+// 		EndDate:          endDate,
+// 		EndTime:          endTime,
+// 		Description:      description,
+// 		Roles:            []RoleRef{},
+// 		Assginedteachers: []RoleRef1{},
+// 	}
+// 	event.EventID = event.ID
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) // Increased timeout for more DB operations
+// 	defer cancel()
+
+// 	eventCollection := db.Collection(eventCollection)
+// 	if _, err := eventCollection.InsertOne(ctx, event); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create the event in the database"})
+// 		return
+// 	}
+
+// 	// --- 2. Parse Roles and Pre-assign Teachers ---
+// 	rows, err := excelFile.GetRows("Roles")
+// 	if err != nil || len(rows) <= 1 {
+// 		c.JSON(http.StatusCreated, gin.H{
+// 			"message": "Event created successfully without roles (or 'Roles' sheet was empty/missing).",
+// 			"event":   event,
+// 		})
+// 		return
+// 	}
+
+// 	roleCollection := db.Collection(roleCollection)
+// 	teacherCollection := db.Collection(teacherCollection)
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+
+// 	var createdRoles []Role
+// 	var assignmentResults []string // To provide feedback on assignments
+
+// 	// Start from index 1 to skip the header row
+// 	for i, row := range rows[1:] {
+// 		if len(row) == 0 || row[0] == "" {
+// 			continue // Skip empty rows
+// 		}
+
+// 		// Safely access row data
+// 		getCellValue := func(r []string, index int) string {
+// 			if len(r) > index {
+// 				return r[index]
+// 			}
+// 			return ""
+// 		}
+
+// 		roleName := getCellValue(row, 0)
+// 		roleDescription := getCellValue(row, 1)
+// 		headCount, _ := strconv.Atoi(getCellValue(row, 2))
+// 		points, _ := strconv.Atoi(getCellValue(row, 3))
+// 		teacherName := getCellValue(row, 4)
+// 		teacherDept := getCellValue(row, 5)
+
+// 		role := Role{
+// 			ID:          primitive.NewObjectID(),
+// 			EventID:     event.ID,
+// 			EventName:   event.Name,
+// 			Name:        roleName,
+// 			Description: roleDescription,
+// 			HeadCount:   headCount,
+// 			Point:       points,
+// 		}
+// 		role.RoleID = role.ID
+
+// 		if _, err := roleCollection.InsertOne(ctx, role); err != nil {
+// 			assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: Failed to create role '%s'", i+2, roleName))
+// 			continue // Skip to next role
+// 		}
+// 		createdRoles = append(createdRoles, role)
+// 		event.Roles = append(event.Roles, RoleRef{ID: role.ID, Name: role.Name})
+
+// 		// --- NEW: Logic to find and assign a teacher ---
+// 		if teacherName != "" && teacherDept != "" {
+// 			var teacherToAssign Teacher
+// 			// Find the teacher by name and department for accuracy
+// 			filter := bson.M{"name": teacherName, "departmentname": teacherDept}
+// 			err := teacherCollection.FindOne(ctx, filter).Decode(&teacherToAssign)
+
+// 			if err != nil {
+// 				if err == mongo.ErrNoDocuments {
+// 					assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: Teacher '%s' from '%s' not found. Role '%s' created without assignment.", i+2, teacherName, teacherDept, roleName))
+// 				} else {
+// 					assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: DB error finding teacher '%s': %v", i+2, teacherName, err))
+// 				}
+// 				continue // Go to the next role
+// 			}
+
+// 			// Teacher found, proceed with assignment
+// 			assignment := Assignment{
+// 				ID:            primitive.NewObjectID(),
+// 				EventID:       event.ID,
+// 				EventName:     event.Name,
+// 				TeacherID:     teacherToAssign.ID,
+// 				RoleID:        role.ID,
+// 				RoleName:      role.Name,
+// 				TeacherName:   teacherToAssign.Name,
+// 				TeacherEmail:  teacherToAssign.Email,
+// 				PointsAwarded: nil, // Initially nil, uses role.Point
+// 			}
+// 			assignment.AssignmentID = assignment.ID
+
+// 			if _, err := assignmentCollection.InsertOne(ctx, assignment); err != nil {
+// 				assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: Failed to create assignment for teacher '%s'.", i+2, teacherName))
+// 				continue
+// 			}
+
+// 			// Update teacher's total points
+// 			_, err = teacherCollection.UpdateOne(ctx, bson.M{"_id": teacherToAssign.ID}, bson.M{"$inc": bson.M{"point": role.Point}})
+// 			if err != nil {
+// 				// Log this error, as it's important but shouldn't stop the process
+// 				fmt.Printf("Warning: Failed to update points for teacher %s: %v\n", teacherToAssign.Name, err)
+// 			}
+
+// 			// Add reference to the event's assigned teachers list
+// 			event.Assginedteachers = append(event.Assginedteachers, RoleRef1{
+// 				ID:            role.ID,
+// 				RoleName:      role.Name,
+// 				TeacherleName: teacherToAssign.Name,
+// 				Assignment_ID: assignment.ID,
+// 			})
+
+// 			// Create a notification for the teacher
+// 			createNotification(teacherToAssign.ID, event.ID, role.ID, assignment.ID, event.Name, role.Name, teacherToAssign.Name)
+
+// 			assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: Successfully assigned teacher '%s' to role '%s'.", i+2, teacherName, roleName))
+// 		}
+// 	}
+
+// 	// --- 3. Finalize Event Update ---
+// 	// Update the event with all role references and successful teacher assignments
+// 	update := bson.M{"$set": bson.M{"roles": event.Roles, "assginedteachers": event.Assginedteachers}}
+// 	_, err = eventCollection.UpdateOne(ctx, bson.M{"_id": event.ID}, update)
+// 	if err != nil {
+// 		fmt.Printf("Warning: Final event update failed for event ID %s: %v\n", event.ID.Hex(), err)
+// 	}
+
+//		c.JSON(http.StatusCreated, gin.H{
+//			"message":             "Event processing from Excel complete.",
+//			"event_details":       event,
+//			"created_roles_count": len(createdRoles),
+//			"assignment_log":      assignmentResults,
+//		})
+//	}
+//
+// CreateEventFromExcel handles creating an event, its roles, and pre-assigning single or multiple teachers
+// to roles based on the Excel file format.
+func CreateEventFromExcel(c *gin.Context) {
+	file, err := c.FormFile("excel_file")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Excel file is required"})
+		return
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open the uploaded file"})
+		return
+	}
+	defer f.Close()
+
+	excelFile, err := excelize.OpenReader(f)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read the Excel file"})
+		return
+	}
+
+	// --- 1. Parse and Create the Event ---
+	eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
+	startDate, _ := excelFile.GetCellValue("EventDetails", "B2")
+	startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
+	endDate, _ := excelFile.GetCellValue("EventDetails", "B4")
+	endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
+	description, _ := excelFile.GetCellValue("EventDetails", "B6")
+
+	if eventName == "" || startDate == "" || startTime == "" || endDate == "" || endTime == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled."})
+		return
+	}
+
+	event := Event{
+		ID:               primitive.NewObjectID(),
+		Name:             eventName,
+		StartDate:        startDate,
+		StartTime:        startTime,
+		EndDate:          endDate,
+		EndTime:          endTime,
+		Description:      description,
+		Roles:            []RoleRef{},
+		Assginedteachers: []RoleRef1{},
+	}
+	event.EventID = event.ID
+
+	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second) // Increased timeout
+	defer cancel()
+
+	eventCollection := db.Collection(eventCollection)
+	if _, err := eventCollection.InsertOne(ctx, event); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create the event in the database"})
+		return
+	}
+
+	// --- 2. Parse Roles and Pre-assign Teachers ---
+	rows, err := excelFile.GetRows("Roles")
+	if err != nil || len(rows) <= 1 {
+		c.JSON(http.StatusCreated, gin.H{
+			"message": "Event created successfully without roles (or 'Roles' sheet was empty/missing).",
+			"event":   event,
+		})
+		return
+	}
+
+	roleCollection := db.Collection(roleCollection)
+	teacherCollection := db.Collection(teacherCollection)
+	assignmentCollection := db.Collection(teacherAssignmentCollection)
+
+	// NEW: Maps to track roles created during this import and their current assignment count
+	createdRolesMap := make(map[string]Role)
+	assignedCounts := make(map[primitive.ObjectID]int)
+	var assignmentResults []string
+
+	for i, row := range rows[1:] {
+		if len(row) == 0 || row[0] == "" {
+			continue // Skip empty rows
+		}
+
+		getCellValue := func(r []string, index int) string {
+			if len(r) > index {
+				return r[index]
+			}
+			return ""
+		}
+
+		roleName := getCellValue(row, 0)
+		teacherName := getCellValue(row, 4)
+		teacherDept := getCellValue(row, 5)
+
+		var currentRole Role
+		var ok bool
+
+		// NEW: Check if we have already processed this role in a previous row
+		if currentRole, ok = createdRolesMap[roleName]; !ok {
+			// This is the first time we see this role name, so create it.
+			roleDescription := getCellValue(row, 1)
+			headCount, _ := strconv.Atoi(getCellValue(row, 2))
+			points, _ := strconv.Atoi(getCellValue(row, 3))
+
+			newRole := Role{
+				ID:          primitive.NewObjectID(),
+				EventID:     event.ID,
+				EventName:   event.Name,
+				Name:        roleName,
+				Description: roleDescription,
+				HeadCount:   headCount,
+				Point:       points,
+			}
+			newRole.RoleID = newRole.ID
+
+			if _, err := roleCollection.InsertOne(ctx, newRole); err != nil {
+				assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: FAILED to create role '%s'. Skipping.", i+2, roleName))
+				continue
+			}
+
+			// Store the newly created role in our map for future rows
+			createdRolesMap[roleName] = newRole
+			currentRole = newRole
+			assignedCounts[currentRole.ID] = 0 // Initialize assignment count
+			event.Roles = append(event.Roles, RoleRef{ID: currentRole.ID, Name: currentRole.Name})
+		}
+
+		// --- Proceed with Teacher Assignment ---
+		if teacherName != "" && teacherDept != "" {
+			// NEW: Check if the role's head count has been reached
+			if assignedCounts[currentRole.ID] >= currentRole.HeadCount {
+				assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: SKIPPED. Head count for role '%s' (%d) reached. Cannot assign '%s'.", i+2, roleName, currentRole.HeadCount, teacherName))
+				continue
+			}
+
+			var teacherToAssign Teacher
+			filter := bson.M{"name": teacherName, "departmentname": teacherDept}
+			err := teacherCollection.FindOne(ctx, filter).Decode(&teacherToAssign)
+
+			if err != nil {
+				if err == mongo.ErrNoDocuments {
+					assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: Teacher '%s' from '%s' not found. Role '%s' created but this assignment was skipped.", i+2, teacherName, teacherDept, roleName))
+				} else {
+					assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: DB error finding teacher '%s': %v", i+2, teacherName, err))
+				}
+				continue
+			}
+
+			// Teacher found, create the assignment
+			assignment := Assignment{
+				ID:           primitive.NewObjectID(),
+				EventID:      event.ID,
+				EventName:    event.Name,
+				TeacherID:    teacherToAssign.ID,
+				RoleID:       currentRole.ID,
+				RoleName:     currentRole.Name,
+				TeacherName:  teacherToAssign.Name,
+				TeacherEmail: teacherToAssign.Email,
+			}
+			assignment.AssignmentID = assignment.ID
+
+			if _, err := assignmentCollection.InsertOne(ctx, assignment); err != nil {
+				assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: FAILED to create assignment for teacher '%s'.", i+2, teacherName))
+				continue
+			}
+
+			_, _ = teacherCollection.UpdateOne(ctx, bson.M{"_id": teacherToAssign.ID}, bson.M{"$inc": bson.M{"point": currentRole.Point}})
+
+			event.Assginedteachers = append(event.Assginedteachers, RoleRef1{
+				ID:            currentRole.ID,
+				RoleName:      currentRole.Name,
+				TeacherleName: teacherToAssign.Name,
+				Assignment_ID: assignment.ID,
+			})
+
+			createNotification(teacherToAssign.ID, event.ID, currentRole.ID, assignment.ID, event.Name, currentRole.Name, teacherToAssign.Name)
+
+			// NEW: Increment the count for this role
+			assignedCounts[currentRole.ID]++
+			assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: SUCCESS. Assigned teacher '%s' to role '%s'. (Assigned %d of %d)", i+2, teacherName, roleName, assignedCounts[currentRole.ID], currentRole.HeadCount))
+		}
+	}
+
+	// --- 3. Finalize Event Update ---
+	update := bson.M{"$set": bson.M{"roles": event.Roles, "assginedteachers": event.Assginedteachers}}
+	_, err = eventCollection.UpdateOne(ctx, bson.M{"_id": event.ID}, update)
+	if err != nil {
+		fmt.Printf("Warning: Final event update failed for event ID %s: %v\n", event.ID.Hex(), err)
+	}
+
+	c.JSON(http.StatusCreated, gin.H{
+		"message":        "Event processing from Excel complete.",
+		"event_details":  event,
+		"assignment_log": assignmentResults,
+	})
+}
+
+// AutoAssignLowestPointTeacherToRole finds an available teacher with the lowest points
+// and assigns them to the specified role in an event.
+
+// func AutoAssignLowestPointTeacherToRole(c *gin.Context) {
+// 	eventID, err := primitive.ObjectIDFromHex(c.Param("eventid"))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// 		return
+// 	}
+// 	roleID, err := primitive.ObjectIDFromHex(c.Param("roleid"))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID format"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+// 	defer cancel()
+
+// 	// Step 1: Get all assignments for this role to find out who is already assigned.
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+// 	assignedCursor, err := assignmentCollection.Find(ctx, bson.M{"event_id": eventID, "role_id": roleID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve existing assignments"})
+// 		return
+// 	}
+// 	var assignedTeachers []Assignment
+// 	if err := assignedCursor.All(ctx, &assignedTeachers); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode existing assignments"})
+// 		return
+// 	}
+
+// 	assignedTeacherIDs := make(map[primitive.ObjectID]bool)
+// 	for _, assignment := range assignedTeachers {
+// 		assignedTeacherIDs[assignment.TeacherID] = true
+// 	}
+
+// 	// Step 2: Find the teacher with the lowest points who is not already assigned.
+// 	teacherCollection := db.Collection(teacherCollection)
+// 	// We filter by teachers whose ID is "not in" the list of already assigned IDs.
+// 	// findOptions := options.FindOne().SetSort(bson.D{{"point", 1}}) // 1 for ascending order
+// 	findOptions := options.FindOne().SetSort(bson.D{{Key: "point", Value: 1}}) // 1 for ascending order
+
+// 	var teacherToAssign Teacher
+// 	err = teacherCollection.FindOne(ctx, bson.M{"_id": bson.M{"$nin": maps.Keys(assignedTeacherIDs)}}, findOptions).Decode(&teacherToAssign)
+// 	if err != nil {
+// 		if err == mongo.ErrNoDocuments {
+// 			c.JSON(http.StatusNotFound, gin.H{"error": "No available teachers to assign"})
+// 			return
+// 		}
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find a teacher to assign"})
+// 		return
+// 	}
+
+// 	// Step 3: Use the existing assignment logic to assign the found teacher.
+// 	// This reuses the logic from your AssignTeacherToRole function.
+
+// 	// Fetch role and event details for the assignment
+// 	var role Role
+// 	if err := db.Collection(roleCollection).FindOne(ctx, bson.M{"_id": roleID}).Decode(&role); err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Role not found"})
+// 		return
+// 	}
+
+// 	var event Event
+// 	if err := db.Collection(eventCollection).FindOne(ctx, bson.M{"_id": eventID}).Decode(&event); err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+// 		return
+// 	}
+
+// 	// Check head count before assigning
+// 	if len(assignedTeachers) >= role.HeadCount {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Role has reached its maximum head count"})
+// 		return
+// 	}
+
+// 	assignment := Assignment{
+// 		ID:           primitive.NewObjectID(),
+// 		EventID:      eventID,
+// 		EventName:    event.Name,
+// 		TeacherID:    teacherToAssign.ID,
+// 		RoleID:       roleID,
+// 		RoleName:     role.Name,
+// 		TeacherName:  teacherToAssign.Name,
+// 		TeacherEmail: teacherToAssign.Email,
+// 	}
+// 	assignment.AssignmentID = assignment.ID
+
+// 	if _, err := assignmentCollection.InsertOne(ctx, assignment); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create assignment"})
+// 		return
+// 	}
+
+// 	if _, err := teacherCollection.UpdateOne(ctx, bson.M{"_id": teacherToAssign.ID}, bson.M{"$inc": bson.M{"point": role.Point}}); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher points"})
+// 		return
+// 	}
+
+// 	roleRef := RoleRef1{ID: roleID, RoleName: role.Name, TeacherleName: teacherToAssign.Name, Assignment_ID: assignment.ID}
+// 	if _, err := db.Collection(eventCollection).UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"$push": bson.M{"assginedteachers": roleRef}}); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update event's assigned teachers"})
+// 		return
+// 	}
+
+// 	if err := createNotification(teacherToAssign.ID, eventID, roleID, assignment.ID, event.Name, role.Name, teacherToAssign.Name); err != nil {
+// 		fmt.Printf("Failed to create notification: %v\n", err)
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message":          "Successfully auto-assigned teacher with the lowest points.",
+// 		"assigned_teacher": teacherToAssign.Name,
+// 		"assignment":       assignment,
+// 	})
+// }
+
+// AutoAssignLowestPointTeacherToRole finds an available teacher with the lowest points
+// and assigns them to the specified role in an event.
+
+// func AutoAssignLowestPointTeacherToRole(c *gin.Context) {
+// 	eventID, err := primitive.ObjectIDFromHex(c.Param("eventid"))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// 		return
+// 	}
+// 	roleID, err := primitive.ObjectIDFromHex(c.Param("roleid"))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID format"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+// 	defer cancel()
+
+// 	// Step 1: Get all assignments for this role to find out who is already assigned.
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+// 	assignedCursor, err := assignmentCollection.Find(ctx, bson.M{"event_id": eventID, "role_id": roleID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve existing assignments"})
+// 		return
+// 	}
+// 	var assignedTeachers []Assignment
+// 	if err := assignedCursor.All(ctx, &assignedTeachers); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode existing assignments"})
+// 		return
+// 	}
+
+// 	// SOLUTION 1: Build a slice of ObjectIDs directly. This is more robust than using maps.Keys().
+// 	// Initialize as a non-nil empty slice to avoid issues with the $nin operator.
+// 	assignedTeacherIDs := make([]primitive.ObjectID, 0)
+// 	for _, assignment := range assignedTeachers {
+// 		assignedTeacherIDs = append(assignedTeacherIDs, assignment.TeacherID)
+// 	}
+
+// 	// Step 2: Find the teacher with the lowest points who is not already assigned.
+// 	teacherCollection := db.Collection(teacherCollection)
+// 	findOptions := options.FindOne().SetSort(bson.D{{Key: "point", Value: 1}}) // 1 for ascending order
+
+// 	var teacherToAssign Teacher
+// 	// Use the assignedTeacherIDs slice directly in the query.
+// 	err = teacherCollection.FindOne(ctx, bson.M{"_id": bson.M{"$nin": assignedTeacherIDs}}, findOptions).Decode(&teacherToAssign)
+// 	if err != nil {
+// 		if err == mongo.ErrNoDocuments {
+// 			c.JSON(http.StatusNotFound, gin.H{"error": "No available teachers to assign. They may all be assigned already."})
+// 			return
+// 		}
+// 		// SOLUTION 2: Add the actual database error to the response for better debugging.
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to find a teacher to assign: " + err.Error()})
+// 		return
+// 	}
+
+// 	// Step 3: Use the existing assignment logic to assign the found teacher.
+// 	var role Role
+// 	if err := db.Collection(roleCollection).FindOne(ctx, bson.M{"_id": roleID}).Decode(&role); err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Role not found"})
+// 		return
+// 	}
+
+// 	var event Event
+// 	if err := db.Collection(eventCollection).FindOne(ctx, bson.M{"_id": eventID}).Decode(&event); err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+// 		return
+// 	}
+
+// 	// Check head count before assigning
+// 	if len(assignedTeachers) >= role.HeadCount {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Role has reached its maximum head count"})
+// 		return
+// 	}
+
+// 	assignment := Assignment{
+// 		ID:           primitive.NewObjectID(),
+// 		EventID:      eventID,
+// 		EventName:    event.Name,
+// 		TeacherID:    teacherToAssign.ID,
+// 		RoleID:       roleID,
+// 		RoleName:     role.Name,
+// 		TeacherName:  teacherToAssign.Name,
+// 		TeacherEmail: teacherToAssign.Email,
+// 	}
+// 	assignment.AssignmentID = assignment.ID
+
+// 	if _, err := assignmentCollection.InsertOne(ctx, assignment); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create assignment"})
+// 		return
+// 	}
+
+// 	if _, err := teacherCollection.UpdateOne(ctx, bson.M{"_id": teacherToAssign.ID}, bson.M{"$inc": bson.M{"point": role.Point}}); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update teacher points"})
+// 		return
+// 	}
+
+// 	roleRef := RoleRef1{ID: roleID, RoleName: role.Name, TeacherleName: teacherToAssign.Name, Assignment_ID: assignment.ID}
+// 	if _, err := db.Collection(eventCollection).UpdateOne(ctx, bson.M{"_id": eventID}, bson.M{"$push": bson.M{"assginedteachers": roleRef}}); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update event's assigned teachers"})
+// 		return
+// 	}
+
+// 	if err := createNotification(teacherToAssign.ID, eventID, roleID, assignment.ID, event.Name, role.Name, teacherToAssign.Name); err != nil {
+// 		fmt.Printf("Failed to create notification: %v\n", err)
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message":          "Successfully auto-assigned teacher with the lowest points.",
+// 		"assigned_teacher": teacherToAssign.Name,
+// 		"assignment":       assignment,
+// 	})
+// }
+
+// AutoAssignLowestPointTeacherToRole finds and assigns a specified number of available teachers
+// with the lowest points to a given role.
+
+// func AutoAssignLowestPointTeacherToRole(c *gin.Context) {
+// 	// --- 1. Get IDs and Request Body ---
+// 	eventID, err := primitive.ObjectIDFromHex(c.Param("eventid"))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// 		return
+// 	}
+// 	roleID, err := primitive.ObjectIDFromHex(c.Param("roleid"))
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID format"})
+// 		return
+// 	}
+
+// 	type AutoAssignRequest struct {
+// 		Count int `json:"count" binding:"required"`
+// 	}
+// 	var req AutoAssignRequest
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body. 'count' is required."})
+// 		return
+// 	}
+
+// 	if req.Count <= 0 {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Count must be a positive number."})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) // Increased timeout for bulk operations
+// 	defer cancel()
+
+// 	// --- 2. Get Initial State (Role Details and Current Assignments) ---
+// 	var role Role
+// 	if err := db.Collection(roleCollection).FindOne(ctx, bson.M{"_id": roleID}).Decode(&role); err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Role not found"})
+// 		return
+// 	}
+
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+// 	assignedCursor, err := assignmentCollection.Find(ctx, bson.M{"role_id": roleID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve existing assignments"})
+// 		return
+// 	}
+// 	var assignedTeachers []Assignment
+// 	if err := assignedCursor.All(ctx, &assignedTeachers); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode existing assignments"})
+// 		return
+// 	}
+
+// 	// --- 3. Determine How Many Teachers to Find ---
+// 	availableSlots := role.HeadCount - len(assignedTeachers)
+// 	if availableSlots <= 0 {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Role has already reached its maximum head count"})
+// 		return
+// 	}
+
+// 	teachersToFind := req.Count
+// 	if req.Count > availableSlots {
+// 		teachersToFind = availableSlots // Don't find more teachers than there are slots
+// 	}
+
+// 	// --- 4. Find Available Teachers ---
+// 	assignedTeacherIDs := make([]primitive.ObjectID, 0)
+// 	for _, assignment := range assignedTeachers {
+// 		assignedTeacherIDs = append(assignedTeacherIDs, assignment.TeacherID)
+// 	}
+
+// 	teacherCollection := db.Collection(teacherCollection)
+// 	findOptions := options.Find().SetSort(bson.D{{Key: "point", Value: 1}}).SetLimit(int64(teachersToFind))
+
+// 	teacherCursor, err := teacherCollection.Find(ctx, bson.M{"_id": bson.M{"$nin": assignedTeacherIDs}}, findOptions)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query for available teachers: " + err.Error()})
+// 		return
+// 	}
+// 	var teachersToAssign []Teacher
+// 	if err = teacherCursor.All(ctx, &teachersToAssign); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode available teachers: " + err.Error()})
+// 		return
+// 	}
+
+// 	if len(teachersToAssign) == 0 {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "No available teachers found to assign."})
+// 		return
+// 	}
+
+// 	// --- 5. Loop and Assign Each Teacher ---
+// 	var event Event
+// 	if err := db.Collection(eventCollection).FindOne(ctx, bson.M{"_id": eventID}).Decode(&event); err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found during assignment phase"})
+// 		return
+// 	}
+
+// 	var successfulAssignments []string
+// 	for _, teacher := range teachersToAssign {
+// 		assignment := Assignment{
+// 			ID:           primitive.NewObjectID(),
+// 			EventID:      eventID,
+// 			EventName:    event.Name,
+// 			TeacherID:    teacher.ID,
+// 			RoleID:       roleID,
+// 			RoleName:     role.Name,
+// 			TeacherName:  teacher.Name,
+// 			TeacherEmail: teacher.Email,
+// 		}
+// 		assignment.AssignmentID = assignment.ID
+
+// 		if _, err := assignmentCollection.InsertOne(ctx, assignment); err != nil {
+// 			fmt.Printf("Failed to create assignment for teacher %s: %v\n", teacher.Name, err)
+// 			continue // Skip to the next teacher if this one fails
+// 		}
+
+// 		// Use goroutines for non-critical updates to speed up the process
+// 		go func(t Teacher) {
+// 			_, _ = teacherCollection.UpdateOne(context.Background(), bson.M{"_id": t.ID}, bson.M{"$inc": bson.M{"point": role.Point}})
+// 			roleRef := RoleRef1{ID: roleID, RoleName: role.Name, TeacherleName: t.Name, Assignment_ID: assignment.ID}
+// 			_, _ = db.Collection(eventCollection).UpdateOne(context.Background(), bson.M{"_id": eventID}, bson.M{"$push": bson.M{"assginedteachers": roleRef}})
+// 			_ = createNotification(t.ID, eventID, roleID, assignment.ID, event.Name, role.Name, t.Name)
+// 		}(teacher)
+
+// 		successfulAssignments = append(successfulAssignments, teacher.Name)
+// 	}
+
+//		c.JSON(http.StatusOK, gin.H{
+//			"message":           fmt.Sprintf("Successfully assigned %d teacher(s).", len(successfulAssignments)),
+//			"assigned_count":    len(successfulAssignments),
+//			"assigned_teachers": successfulAssignments,
+//		})
+//	}
+//
+// AutoAssignLowestPointTeacherToRole finds and assigns a specified number of available teachers
+// with the lowest points to a given role, ensuring no duplicates within the same event role.
+func AutoAssignLowestPointTeacherToRole(c *gin.Context) {
+	// --- 1. Get IDs and Request Body ---
+	eventID, err := primitive.ObjectIDFromHex(c.Param("eventid"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+		return
+	}
+	roleID, err := primitive.ObjectIDFromHex(c.Param("roleid"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID format"})
+		return
+	}
+
+	type AutoAssignRequest struct {
+		Count int `json:"count" binding:"required"`
+	}
+	var req AutoAssignRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body. 'count' is required."})
+		return
+	}
+
+	if req.Count <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Count must be a positive number."})
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second) // Increased timeout for bulk operations
+	defer cancel()
+
+	// --- 2. Get Initial State (Role Details and Current Assignments for THIS event) ---
+	var role Role
+	if err := db.Collection(roleCollection).FindOne(ctx, bson.M{"_id": roleID}).Decode(&role); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Role not found"})
+		return
+	}
+
+	assignmentCollection := db.Collection(teacherAssignmentCollection)
+
+	// CORRECTED LINE: The query now checks for assignments to this role IN THIS SPECIFIC EVENT.
+	// This is the key fix to prevent duplicates correctly.
+	assignedCursor, err := assignmentCollection.Find(ctx, bson.M{"role_id": roleID, "event_id": eventID})
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve existing assignments"})
+		return
+	}
+	var existingAssignments []Assignment
+	if err := assignedCursor.All(ctx, &existingAssignments); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode existing assignments"})
+		return
+	}
+
+	// --- 3. Determine How Many Teachers to Find ---
+	availableSlots := role.HeadCount - len(existingAssignments)
+	if availableSlots <= 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Role has already reached its maximum head count"})
+		return
+	}
+
+	teachersToFind := req.Count
+	if req.Count > availableSlots {
+		teachersToFind = availableSlots // Don't find more teachers than there are slots
+	}
+
+	// --- 4. Find Available Teachers (who are not already assigned to this role in this event) ---
+	assignedTeacherIDs := make([]primitive.ObjectID, 0)
+	for _, assignment := range existingAssignments {
+		assignedTeacherIDs = append(assignedTeacherIDs, assignment.TeacherID)
+	}
+
+	teacherCollection := db.Collection(teacherCollection)
+	findOptions := options.Find().SetSort(bson.D{{Key: "point", Value: 1}}).SetLimit(int64(teachersToFind))
+
+	teacherCursor, err := teacherCollection.Find(ctx, bson.M{"_id": bson.M{"$nin": assignedTeacherIDs}}, findOptions)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query for available teachers: " + err.Error()})
+		return
+	}
+	var teachersToAssign []Teacher
+	if err = teacherCursor.All(ctx, &teachersToAssign); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode available teachers: " + err.Error()})
+		return
+	}
+
+	if len(teachersToAssign) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "No available teachers found to assign."})
+		return
+	}
+
+	// --- 5. Loop and Assign Each Teacher ---
+	var event Event
+	if err := db.Collection(eventCollection).FindOne(ctx, bson.M{"_id": eventID}).Decode(&event); err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found during assignment phase"})
+		return
+	}
+
+	var successfulAssignments []string
+	for _, teacher := range teachersToAssign {
+		assignment := Assignment{
+			ID:           primitive.NewObjectID(),
+			EventID:      eventID,
+			EventName:    event.Name,
+			TeacherID:    teacher.ID,
+			RoleID:       roleID,
+			RoleName:     role.Name,
+			TeacherName:  teacher.Name,
+			TeacherEmail: teacher.Email,
+		}
+		assignment.AssignmentID = assignment.ID
+
+		if _, err := assignmentCollection.InsertOne(ctx, assignment); err != nil {
+			fmt.Printf("Failed to create assignment for teacher %s: %v\n", teacher.Name, err)
+			continue // Skip to the next teacher if this one fails
+		}
+
+		// Use goroutines for non-critical updates to speed up the process
+		go func(t Teacher) {
+			bgCtx := context.Background()
+			_, _ = teacherCollection.UpdateOne(bgCtx, bson.M{"_id": t.ID}, bson.M{"$inc": bson.M{"point": role.Point}})
+			roleRef := RoleRef1{ID: roleID, RoleName: role.Name, TeacherleName: t.Name, Assignment_ID: assignment.ID}
+			_, _ = db.Collection(eventCollection).UpdateOne(bgCtx, bson.M{"_id": eventID}, bson.M{"$push": bson.M{"assginedteachers": roleRef}})
+			_ = createNotification(t.ID, eventID, roleID, assignment.ID, event.Name, role.Name, t.Name)
+		}(teacher)
+
+		successfulAssignments = append(successfulAssignments, teacher.Name)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"total_count":  totalCount,
-		"unread_count": unreadCount,
+		"message":           fmt.Sprintf("Successfully assigned %d teacher(s).", len(successfulAssignments)),
+		"assigned_count":    len(successfulAssignments),
+		"assigned_teachers": successfulAssignments,
 	})
 }

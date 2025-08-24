@@ -79,5 +79,17 @@ func main() {
 	r.PUT("/teachers/:id/notifications/read-all", MarkAllNotificationsRead)
 	r.GET("/teachers/:id/notifications/count", GetNotificationCount)
 
+	//reports
+	r.GET("/reports/event/:eventid", GenerateEventReportCSV)
+	r.GET("/reports/daterange", GenerateDateRangeReportCSV)
+	r.GET("/reports/teacher/:teacherid", GenerateTeacherReportCSV)
+
+	r.GET("/dashboard/faculty", GetFacultyDashboard)
+
+	r.PUT("/assignments/edit/:id", EditTeacherAssignment)
+
+	r.POST("/events/create-from-excel", CreateEventFromExcel)
+	// In your main function where you define routes...
+	r.POST("/events/:eventid/roles/:roleid/auto-assign", AutoAssignLowestPointTeacherToRole)
 	r.Run(":8080")
 }

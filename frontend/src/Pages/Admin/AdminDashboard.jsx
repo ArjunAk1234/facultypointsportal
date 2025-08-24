@@ -1,178 +1,9 @@
-// // // // import React, { useState, useEffect } from "react";
-// // // // import axios from "axios";
-// // // // import { Link, useNavigate } from "react-router-dom";
 
-// // // // // Main Admin Dashboard Component (No longer needs Routes)
-// // // // const AdminDashboard = () => {
-// // // //   const [events, setEvents] = useState([]);
-// // // //   const navigate = useNavigate();
-// // // //   const [showCreateForm, setShowCreateForm] = useState(false);
-// // // //   const [formData, setFormData] = useState({
-// // // //     eventName: "",
-// // // //     eventDescription: "",
-// // // //     startDate: "",
-// // // //     endDate: "",
-// // // //   });
-
-// // // //   useEffect(() => {
-// // // //     fetchEvents();
-// // // //   }, []);
-
-// // // //   const fetchEvents = () => {
-// // // //     axios
-// // // //       .get("http://localhost:8080/events/current")
-// // // //       .then((res) => setEvents(res.data))
-// // // //       .catch((err) => console.error("Error fetching events:", err));
-// // // //   };
-
-// // // //   const handleInputChange = (e) => {
-// // // //     const { name, value } = e.target;
-// // // //     setFormData((prev) => ({ ...prev, [name]: value }));
-// // // //   };
-
-// // // //   const handleFormSubmit = (e) => {
-// // // //     e.preventDefault();
-    
-// // // //     // In a real application, you'd make a POST request to your backend
-// // // //     axios.post("https://09da6b2c-7088-466c-b94a-4662e3e1bd28.mock.pstmn.io/events", {
-// // // //       event_name: formData.eventName,
-// // // //       event_description: formData.eventDescription,
-// // // //       start_date: formData.startDate,
-// // // //       end_date: formData.endDate
-// // // //     })
-// // // //     .then(response => {
-// // // //       console.log("Event created:", response.data);
-// // // //       // Reset form
-// // // //       setFormData({
-// // // //         eventName: "",
-// // // //         eventDescription: "",
-// // // //         startDate: "",
-// // // //         endDate: "",
-// // // //       });
-// // // //       // Hide form
-// // // //       setShowCreateForm(false);
-// // // //       // Refresh event list
-// // // //       fetchEvents();
-// // // //     })
-// // // //     .catch(error => {
-// // // //       console.error("Error creating event:", error);
-// // // //     });
-// // // //   };
-
-// // // //   return (
-// // // //     <div>
-// // // //       <h2 className="text-xl font-semibold mb-4">Admin Dashboard</h2>
-      
-// // // //       <button
-// // // //         className="mb-6 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-// // // //         onClick={() => setShowCreateForm(!showCreateForm)}
-// // // //       >
-// // // //         {showCreateForm ? "Cancel" : "Create Event"}
-// // // //       </button>
-
-// // // //       {showCreateForm && (
-// // // //         <div className="bg-white shadow rounded p-6 mb-6">
-// // // //           <h3 className="text-xl font-semibold mb-4">Create New Event</h3>
-// // // //           <form onSubmit={handleFormSubmit} className="space-y-4">
-// // // //             <div>
-// // // //               <label className="block mb-1 font-medium">Event Name</label>
-// // // //               <input
-// // // //                 type="text"
-// // // //                 name="eventName"
-// // // //                 value={formData.eventName}
-// // // //                 onChange={handleInputChange}
-// // // //                 className="w-full px-3 py-2 border rounded"
-// // // //                 required
-// // // //               />
-// // // //             </div>
-// // // //             <div>
-// // // //               <label className="block mb-1 font-medium">Event Description</label>
-// // // //               <textarea
-// // // //                 name="eventDescription"
-// // // //                 value={formData.eventDescription}
-// // // //                 onChange={handleInputChange}
-// // // //                 className="w-full px-3 py-2 border rounded"
-// // // //                 rows="3"
-// // // //               />
-// // // //             </div>
-// // // //             <div>
-// // // //               <label className="block mb-1 font-medium">Start Date</label>
-// // // //               <input
-// // // //                 type="date"
-// // // //                 name="startDate"
-// // // //                 value={formData.startDate}
-// // // //                 onChange={handleInputChange}
-// // // //                 className="w-full px-3 py-2 border rounded"
-// // // //                 required
-// // // //               />
-// // // //             </div>
-// // // //             <div>
-// // // //               <label className="block mb-1 font-medium">End Date</label>
-// // // //               <input
-// // // //                 type="date"
-// // // //                 name="endDate"
-// // // //                 value={formData.endDate}
-// // // //                 onChange={handleInputChange}
-// // // //                 className="w-full px-3 py-2 border rounded"
-// // // //                 required
-// // // //               />
-// // // //             </div>
-// // // //             <div className="flex items-center gap-4">
-// // // //               <button
-// // // //                 type="submit"
-// // // //                 className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-// // // //               >
-// // // //                 Create Event
-// // // //               </button>
-// // // //               <button
-// // // //                 type="button"
-// // // //                 className="px-4 py-2 bg-gray-400 text-white rounded hover:bg-gray-500"
-// // // //                 onClick={() => setShowCreateForm(false)}
-// // // //               >
-// // // //                 Cancel
-// // // //               </button>
-// // // //             </div>
-// // // //           </form>
-// // // //         </div>
-// // // //       )}
-
-// // // //       <div>
-// // // //         <h1 className="text-2xl font-bold mb-4">Current Events</h1>
-// // // //         <ul className="space-y-2">
-// // // //           {events.map((event) => (
-// // // //             <li
-// // // //               key={event.event_id}
-// // // //               className="p-4 border rounded bg-white shadow hover:bg-blue-50 cursor-pointer transition"
-// // // //               onClick={() => navigate(`/admin/event/${event.event_id}`)}
-// // // //             >
-// // // //               <h2 className="text-lg font-semibold">{event.event_name}</h2>
-// // // //               <p className="text-sm text-gray-600">{event.event_description}</p>
-// // // //               <div className="flex justify-between mt-2">
-// // // //                 <span className="text-xs text-gray-500">
-// // // //                   {new Date(event.start_date).toLocaleDateString()} - {new Date(event.end_date).toLocaleDateString()}
-// // // //                 </span>
-// // // //                 <Link
-// // // //                   to={`/admin/event/${event.event_id}`}
-// // // //                   className="text-blue-600 hover:text-blue-800 text-sm"
-// // // //                 >
-// // // //                   Manage Event →
-// // // //                 </Link>
-// // // //               </div>
-// // // //             </li>
-// // // //           ))}
-// // // //         </ul>
-// // // //       </div>
-// // // //     </div>
-// // // //   );
-// // // // };
-
-// // // // export default AdminDashboard;
 // // // import React, { useState, useEffect } from "react";
 // // // import axios from "axios";
 // // // import { Link, useNavigate } from "react-router-dom";
 // // // import "./AdminDashboard.css"; // Import the CSS file
 
-// // // // Main Admin Dashboard Component
 // // // const AdminDashboard = () => {
 // // //   const [events, setEvents] = useState([]);
 // // //   const navigate = useNavigate();
@@ -182,6 +13,8 @@
 // // //     eventDescription: "",
 // // //     startDate: "",
 // // //     endDate: "",
+// // //     startTime: "",
+// // //     endTime: "",
 // // //   });
 
 // // //   useEffect(() => {
@@ -202,47 +35,53 @@
 
 // // //   const handleFormSubmit = (e) => {
 // // //     e.preventDefault();
-    
-// // //     axios.post("http://localhost:8080/events", {
-// // //       name: formData.eventName,
-// // //       description: formData.eventDescription,
-// // //       start_date: formData.startDate,
-// // //       end_date: formData.endDate
-// // //     })
-// // //     .then(response => {
-// // //       console.log("Event created:", response.data);
-// // //       setFormData({
-// // //         eventName: "",
-// // //         eventDescription: "",
-// // //         startDate: "",
-// // //         endDate: "",
+
+// // //     axios
+// // //       .post("http://localhost:8080/events", {
+// // //         name: formData.eventName,
+// // //         description: formData.eventDescription,
+// // //         start_date: formData.startDate,
+// // //         end_date: formData.endDate,
+// // //         start_time: formData.startTime,
+// // //         end_time: formData.endTime,
+// // //       })
+// // //       .then((response) => {
+// // //         console.log("Event created:", response.data);
+// // //         setFormData({
+// // //           eventName: "",
+// // //           eventDescription: "",
+// // //           startDate: "",
+// // //           endDate: "",
+// // //           startTime: "",
+// // //           endTime: "",
+// // //         });
+// // //         setShowCreateForm(false);
+// // //         fetchEvents();
+// // //       })
+// // //       .catch((error) => {
+// // //         console.error("Error creating event:", error);
+// // //         alert("Failed to create event. Please try again.");
 // // //       });
-// // //       setShowCreateForm(false);
-// // //       fetchEvents();
-// // //     })
-// // //     .catch(error => {
-// // //       console.error("Error creating event:", error);
-// // //     });
 // // //   };
 
 // // //   return (
 // // //     <div className="admin-dashboard">
 // // //       <div className="dashboard-container">
 // // //         <h2 className="dashboard-title">Admin Dashboard</h2>
-        
+
 // // //         <button
 // // //           className="btn btn-primary mb-6"
 // // //           onClick={() => setShowCreateForm(!showCreateForm)}
 // // //         >
-// // //           {showCreateForm ? "Cancel" : "Create Event"}
+// // //           {showCreateForm ? "Cancel" : "Create Program"}
 // // //         </button>
 
 // // //         {showCreateForm && (
 // // //           <div className="create-form">
-// // //             <h3 className="form-title">Create New Event</h3>
+// // //             <h3 className="form-title">Create New Program</h3>
 // // //             <form onSubmit={handleFormSubmit}>
 // // //               <div className="form-group">
-// // //                 <label className="form-label">Event Name</label>
+// // //                 <label className="form-label"> Name</label>
 // // //                 <input
 // // //                   type="text"
 // // //                   name="eventName"
@@ -253,7 +92,7 @@
 // // //                 />
 // // //               </div>
 // // //               <div className="form-group">
-// // //                 <label className="form-label">Event Description</label>
+// // //                 <label className="form-label"> Description</label>
 // // //                 <textarea
 // // //                   name="eventDescription"
 // // //                   value={formData.eventDescription}
@@ -274,11 +113,33 @@
 // // //                 />
 // // //               </div>
 // // //               <div className="form-group">
+// // //                 <label className="form-label">Start Time</label>
+// // //                 <input
+// // //                   type="time"
+// // //                   name="startTime"
+// // //                   value={formData.startTime}
+// // //                   onChange={handleInputChange}
+// // //                   className="form-input"
+// // //                   required
+// // //                 />
+// // //               </div>
+// // //               <div className="form-group">
 // // //                 <label className="form-label">End Date</label>
 // // //                 <input
 // // //                   type="date"
 // // //                   name="endDate"
 // // //                   value={formData.endDate}
+// // //                   onChange={handleInputChange}
+// // //                   className="form-input"
+// // //                   required
+// // //                 />
+// // //               </div>
+// // //               <div className="form-group">
+// // //                 <label className="form-label">End Time</label>
+// // //                 <input
+// // //                   type="time"
+// // //                   name="endTime"
+// // //                   value={formData.endTime}
 // // //                   onChange={handleInputChange}
 // // //                   className="form-input"
 // // //                   required
@@ -301,12 +162,14 @@
 // // //         )}
 
 // // //         <div>
-// // //           <h1 className="section-title">Current Events</h1>
+// // //           <h1 className="section-title">Current Programs</h1>
 // // //           {events.length === 0 ? (
 // // //             <div className="empty-state">
 // // //               <div className="empty-state-icon">📅</div>
-// // //               <div className="empty-state-text">No events found</div>
-// // //               <div className="empty-state-subtext">Create your first event to get started</div>
+// // //               <div className="empty-state-text">No programs found</div>
+// // //               <div className="empty-state-subtext">
+// // //                 Create your first program to get started
+// // //               </div>
 // // //             </div>
 // // //           ) : (
 // // //             <div className="events-list">
@@ -320,14 +183,15 @@
 // // //                   <p className="event-description">{event.description}</p>
 // // //                   <div className="event-footer">
 // // //                     <span className="event-dates">
-// // //                       {new Date(event.start_date).toLocaleDateString()} - {new Date(event.end_date).toLocaleDateString()}
+// // //                       {new Date(event.start_date).toLocaleDateString()} -{" "}
+// // //                       {new Date(event.end_date).toLocaleDateString()}
 // // //                     </span>
 // // //                     <Link
 // // //                       to={`/admin/event/${event.event_id}`}
 // // //                       className="event-link"
 // // //                       onClick={(e) => e.stopPropagation()}
 // // //                     >
-// // //                       Manage Event →
+// // //                       Manage Program →
 // // //                     </Link>
 // // //                   </div>
 // // //                 </div>
@@ -346,7 +210,6 @@
 // // import { Link, useNavigate } from "react-router-dom";
 // // import "./AdminDashboard.css"; // Import the CSS file
 
-// // // Main Admin Dashboard Component
 // // const AdminDashboard = () => {
 // //   const [events, setEvents] = useState([]);
 // //   const navigate = useNavigate();
@@ -356,7 +219,13 @@
 // //     eventDescription: "",
 // //     startDate: "",
 // //     endDate: "",
+// //     startTime: "",
+// //     endTime: "",
 // //   });
+
+// //   // New state for report generation
+// //   const [reportStartDate, setReportStartDate] = useState("");
+// //   const [reportEndDate, setReportEndDate] = useState("");
 
 // //   useEffect(() => {
 // //     fetchEvents();
@@ -365,8 +234,11 @@
 // //   const fetchEvents = () => {
 // //     axios
 // //       .get("http://localhost:8080/events/current")
-// //       .then((res) => setEvents(res.data))
-// //       .catch((err) => console.error("Error fetching events:", err));
+// //       .then((res) => setEvents(res.data || [])) // Ensure events is always an array
+// //       .catch((err) => {
+// //         console.error("Error fetching events:", err);
+// //         setEvents([]); // Set to empty array on error
+// //       });
 // //   };
 
 // //   const handleInputChange = (e) => {
@@ -376,52 +248,98 @@
 
 // //   const handleFormSubmit = (e) => {
 // //     e.preventDefault();
-    
-// //     // Corrected payload to match Go backend Event struct
-// //     axios.post("http://localhost:8080/events", {
-// //       name: formData.eventName,
-// //       description: formData.eventDescription,
-// //       start_date: formData.startDate,
-// //       end_date: formData.endDate,
-// //       start_time: "", // Add empty start_time if not collected
-// //       end_time: ""    // Add empty end_time if not collected
-// //     })
-// //     .then(response => {
-// //       console.log("Event created:", response.data);
-// //       setFormData({
-// //         eventName: "",
-// //         eventDescription: "",
-// //         startDate: "",
-// //         endDate: "",
+
+// //     axios
+// //       .post("http://localhost:8080/events", {
+// //         name: formData.eventName,
+// //         description: formData.eventDescription,
+// //         start_date: formData.startDate,
+// //         end_date: formData.endDate,
+// //         start_time: formData.startTime,
+// //         end_time: formData.endTime,
+// //       })
+// //       .then((response) => {
+// //         console.log("Event created:", response.data);
+// //         setFormData({
+// //           eventName: "",
+// //           eventDescription: "",
+// //           startDate: "",
+// //           endDate: "",
+// //           startTime: "",
+// //           endTime: "",
+// //         });
+// //         setShowCreateForm(false);
+// //         fetchEvents();
+// //       })
+// //       .catch((error) => {
+// //         console.error("Error creating event:", error);
+// //         alert("Failed to create event. Please try again.");
 // //       });
-// //       setShowCreateForm(false);
-// //       fetchEvents();
-// //     })
-// //     .catch(error => {
-// //       console.error("Error creating event:", error);
-// //       // Add user-friendly error handling
-// //       alert("Failed to create event. Please try again.");
-// //     });
+// //   };
+
+// //   // Generic function to handle file downloads
+// //   const handleDownload = (url, filename) => {
+// //     axios
+// //       .get(url, {
+// //         responseType: "blob", // Important for handling file data
+// //       })
+// //       .then((response) => {
+// //         // Create a new Blob object from the response data
+// //         const blob = new Blob([response.data], { type: "text/csv" });
+
+// //         // Create a link element
+// //         const link = document.createElement("a");
+
+// //         // Set the href and download attributes for the link
+// //         link.href = window.URL.createObjectURL(blob);
+// //         link.download = filename;
+
+// //         // Append the link to the body and trigger the click
+// //         document.body.appendChild(link);
+// //         link.click();
+
+// //         // Remove the link from the body
+// //         document.body.removeChild(link);
+// //       })
+// //       .catch((error) => {
+// //         console.error("Error downloading file:", error);
+// //         alert("Failed to download report. Please check the console for details.");
+// //       });
+// //   };
+
+// //   const handleDateRangeReport = () => {
+// //     if (!reportStartDate || !reportEndDate) {
+// //       alert("Please select both a start and end date for the report.");
+// //       return;
+// //     }
+// //     const url = `http://localhost:8080/reports/daterange?start_date=${reportStartDate}&end_date=${reportEndDate}`;
+// //     handleDownload(url, `report_${reportStartDate}_to_${reportEndDate}.csv`);
+// //   };
+
+// //   const handleEventReport = (eventId, eventName) => {
+// //     if (!eventId) return;
+// //     const url = `http://localhost:8080/reports/event/${eventId}`;
+// //     handleDownload(url, `event_report_${eventName.replace(/\s+/g, '_')}.csv`);
 // //   };
 
 // //   return (
 // //     <div className="admin-dashboard">
 // //       <div className="dashboard-container">
 // //         <h2 className="dashboard-title">Admin Dashboard</h2>
-        
+
 // //         <button
 // //           className="btn btn-primary mb-6"
 // //           onClick={() => setShowCreateForm(!showCreateForm)}
 // //         >
-// //           {showCreateForm ? "Cancel" : "Create Event"}
+// //           {showCreateForm ? "Cancel" : "Create Program"}
 // //         </button>
 
 // //         {showCreateForm && (
 // //           <div className="create-form">
-// //             <h3 className="form-title">Create New Event</h3>
+// //             <h3 className="form-title">Create New Program</h3>
 // //             <form onSubmit={handleFormSubmit}>
 // //               <div className="form-group">
-// //                 <label className="form-label">Event Name</label>
+// //                 <label className="form-label"> Name</label>
 // //                 <input
 // //                   type="text"
 // //                   name="eventName"
@@ -432,7 +350,7 @@
 // //                 />
 // //               </div>
 // //               <div className="form-group">
-// //                 <label className="form-label">Event Description</label>
+// //                 <label className="form-label"> Description</label>
 // //                 <textarea
 // //                   name="eventDescription"
 // //                   value={formData.eventDescription}
@@ -453,11 +371,33 @@
 // //                 />
 // //               </div>
 // //               <div className="form-group">
+// //                 <label className="form-label">Start Time</label>
+// //                 <input
+// //                   type="time"
+// //                   name="startTime"
+// //                   value={formData.startTime}
+// //                   onChange={handleInputChange}
+// //                   className="form-input"
+// //                   required
+// //                 />
+// //               </div>
+// //               <div className="form-group">
 // //                 <label className="form-label">End Date</label>
 // //                 <input
 // //                   type="date"
 // //                   name="endDate"
 // //                   value={formData.endDate}
+// //                   onChange={handleInputChange}
+// //                   className="form-input"
+// //                   required
+// //                 />
+// //               </div>
+// //               <div className="form-group">
+// //                 <label className="form-label">End Time</label>
+// //                 <input
+// //                   type="time"
+// //                   name="endTime"
+// //                   value={formData.endTime}
 // //                   onChange={handleInputChange}
 // //                   className="form-input"
 // //                   required
@@ -479,13 +419,45 @@
 // //           </div>
 // //         )}
 
+// //         {/* Report Generation Section */}
+// //         <div className="reports-section">
+// //           <h3 className="section-title">Generate Reports</h3>
+// //           <div className="report-generator">
+// //             <h4>Report by Date Range</h4>
+// //             <div className="form-group-inline">
+// //               <input
+// //                 type="date"
+// //                 className="form-input"
+// //                 value={reportStartDate}
+// //                 onChange={(e) => setReportStartDate(e.target.value)}
+// //               />
+// //               <span>to</span>
+// //               <input
+// //                 type="date"
+// //                 className="form-input"
+// //                 value={reportEndDate}
+// //                 onChange={(e) => setReportEndDate(e.target.value)}
+// //               />
+// //               <button
+// //                 className="btn btn-info"
+// //                 onClick={handleDateRangeReport}
+// //               >
+// //                 Download Date Range Report
+// //               </button>
+// //             </div>
+// //           </div>
+// //         </div>
+
+
 // //         <div>
-// //           <h1 className="section-title">Current Events</h1>
+// //           <h1 className="section-title">Current Programs</h1>
 // //           {events.length === 0 ? (
 // //             <div className="empty-state">
 // //               <div className="empty-state-icon">📅</div>
-// //               <div className="empty-state-text">No events found</div>
-// //               <div className="empty-state-subtext">Create your first event to get started</div>
+// //               <div className="empty-state-text">No programs found</div>
+// //               <div className="empty-state-subtext">
+// //                 Create your first program to get started
+// //               </div>
 // //             </div>
 // //           ) : (
 // //             <div className="events-list">
@@ -493,22 +465,35 @@
 // //                 <div
 // //                   key={event.event_id}
 // //                   className="event-card fade-in"
-// //                   onClick={() => navigate(`/admin/event/${event.event_id}`)}
 // //                 >
-// //                   <h2 className="event-title">{event.name}</h2>
-// //                   <p className="event-description">{event.description}</p>
-// //                   <div className="event-footer">
-// //                     <span className="event-dates">
-// //                       {new Date(event.start_date).toLocaleDateString()} - {new Date(event.end_date).toLocaleDateString()}
-// //                     </span>
-// //                     <Link
-// //                       to={`/admin/event/${event.event_id}`}
-// //                       className="event-link"
-// //                       onClick={(e) => e.stopPropagation()}
-// //                     >
-// //                       Manage Event →
-// //                     </Link>
+// //                   <div className="event-card-main" onClick={() => navigate(`/admin/event/${event.event_id}`)}>
+// //                     <h2 className="event-title">{event.name}</h2>
+// //                     <p className="event-description">{event.description}</p>
+// //                     <div className="event-footer">
+// //                       <span className="event-dates">
+// //                         {new Date(event.start_date).toLocaleDateString()} -{" "}
+// //                         {new Date(event.end_date).toLocaleDateString()}
+// //                       </span>
+// //                       <Link
+// //                         to={`/admin/event/${event.event_id}`}
+// //                         className="event-link"
+// //                         onClick={(e) => e.stopPropagation()}
+// //                       >
+// //                         Manage Program →
+// //                       </Link>
+// //                     </div>
 // //                   </div>
+// //                    <div className="event-card-actions">
+// //                       <button 
+// //                         className="btn btn-outline-secondary"
+// //                         onClick={(e) => {
+// //                           e.stopPropagation();
+// //                           handleEventReport(event.event_id, event.name);
+// //                         }}
+// //                       >
+// //                         Download Report
+// //                       </button>
+// //                    </div>
 // //                 </div>
 // //               ))}
 // //             </div>
@@ -522,30 +507,44 @@
 // // export default AdminDashboard;
 // import React, { useState, useEffect } from "react";
 // import axios from "axios";
-// import { Link, useNavigate } from "react-router-dom";
-// import "./AdminDashboard.css"; // Import the CSS file
+// import { useNavigate } from "react-router-dom";
+// import "./AdminDashboard.css"; // Assuming you have this CSS file for styling
 
-// // Main Admin Dashboard Component
 // const AdminDashboard = () => {
 //   const [events, setEvents] = useState([]);
+//   const [activeTab, setActiveTab] = useState("current"); // To switch between event types
+//   const [loading, setLoading] = useState(true);
 //   const navigate = useNavigate();
 //   const [showCreateForm, setShowCreateForm] = useState(false);
 //   const [formData, setFormData] = useState({
-//     eventName: "",
-//     eventDescription: "",
-//     startDate: "",
-//     endDate: "",
+//     name: "",
+//     description: "",
+//     start_date: "",
+//     end_date: "",
+//     start_time: "",
+//     end_time: "",
 //   });
 
-//   useEffect(() => {
-//     fetchEvents();
-//   }, []);
+//   // State for report generation
+//   const [reportStartDate, setReportStartDate] = useState("");
+//   const [reportEndDate, setReportEndDate] = useState("");
 
-//   const fetchEvents = () => {
+//   useEffect(() => {
+//     fetchEvents(activeTab);
+//   }, [activeTab]);
+
+//   const fetchEvents = (tab) => {
+//     setLoading(true);
+//     // The backend provides separate endpoints for current, upcoming, and past events
+//     const endpoint = `http://localhost:8080/events/${tab}`;
 //     axios
-//       .get("http://localhost:8080/events/current")
-//       .then((res) => setEvents(res.data))
-//       .catch((err) => console.error("Error fetching events:", err));
+//       .get(endpoint)
+//       .then((res) => setEvents(res.data || [])) // Ensure events is always an array
+//       .catch((err) => {
+//         console.error(`Error fetching ${tab} events:`, err);
+//         setEvents([]); // Set to empty array on error
+//       })
+//       .finally(() => setLoading(false));
 //   };
 
 //   const handleInputChange = (e) => {
@@ -555,139 +554,143 @@
 
 //   const handleFormSubmit = (e) => {
 //     e.preventDefault();
-    
-//     // Corrected payload to match Go backend Event struct
-//     axios.post("http://localhost:8080/events", {
-//       name: formData.eventName,
-//       description: formData.eventDescription,
-//       start_date: formData.startDate,
-//       end_date: formData.endDate,
-//       start_time: "", // Add empty start_time if not collected
-//       end_time: ""    // Add empty end_time if not collected
-//     })
-//     .then(response => {
-//       console.log("Event created:", response.data);
-//       setFormData({
-//         eventName: "",
-//         eventDescription: "",
-//         startDate: "",
-//         endDate: "",
+//     axios
+//       .post("http://localhost:8080/events", formData)
+//       .then(() => {
+//         setFormData({ name: "", description: "", start_date: "", end_date: "", start_time: "", end_time: "" });
+//         setShowCreateForm(false);
+//         fetchEvents(activeTab); // Refresh the list
+//         alert("Event created successfully!");
+//       })
+//       .catch((error) => {
+//         console.error("Error creating event:", error);
+//         alert(error.response?.data?.error || "Failed to create event. Please try again.");
 //       });
-//       setShowCreateForm(false);
-//       fetchEvents();
-//     })
-//     .catch(error => {
-//       console.error("Error creating event:", error);
-//       // Add user-friendly error handling
-//       alert("Failed to create event. Please try again.");
-//     });
+//   };
+
+//   const handleDownload = (url, filename) => {
+//     axios
+//       .get(url, { responseType: "blob" })
+//       .then((response) => {
+//         const blob = new Blob([response.data], { type: "text/csv" });
+//         const link = document.createElement("a");
+//         link.href = window.URL.createObjectURL(blob);
+//         link.download = filename;
+//         document.body.appendChild(link);
+//         link.click();
+//         document.body.removeChild(link);
+//       })
+//       .catch((error) => {
+//         console.error("Error downloading file:", error);
+//         alert("Failed to download report. The report may be empty or an error occurred.");
+//       });
+//   };
+
+//   const handleDateRangeReport = () => {
+//     if (!reportStartDate || !reportEndDate) {
+//       alert("Please select both a start and end date for the report.");
+//       return;
+//     }
+//     const url = `http://localhost:8080/reports/daterange/csv?start_date=${reportStartDate}&end_date=${reportEndDate}`;
+//     handleDownload(url, `report_${reportStartDate}_to_${reportEndDate}.csv`);
+//   };
+
+//   const handleEventReport = (eventId, eventName) => {
+//     if (!eventId) return;
+//     const url = `http://localhost:8080/reports/event/${eventId}/csv`;
+//     handleDownload(url, `event_report_${eventName.replace(/\s+/g, '_')}.csv`);
 //   };
 
 //   return (
 //     <div className="admin-dashboard">
 //       <div className="dashboard-container">
 //         <h2 className="dashboard-title">Admin Dashboard</h2>
-        
-//         <button
-//           className="btn btn-primary mb-6"
-//           onClick={() => setShowCreateForm(!showCreateForm)}
-//         >
-//           {showCreateForm ? "Cancel" : "Create Event"}
+
+//         <button className="btn btn-primary mb-6" onClick={() => setShowCreateForm(!showCreateForm)}>
+//           {showCreateForm ? "Cancel" : "Create Program"}
 //         </button>
 
 //         {showCreateForm && (
 //           <div className="create-form">
-//             <h3 className="form-title">Create New Event</h3>
+//             <h3 className="form-title">Create New Program</h3>
 //             <form onSubmit={handleFormSubmit}>
 //               <div className="form-group">
-//                 <label className="form-label">Event Name</label>
-//                 <input
-//                   type="text"
-//                   name="eventName"
-//                   value={formData.eventName}
-//                   onChange={handleInputChange}
-//                   className="form-input"
-//                   required
-//                 />
+//                 <label className="form-label">Name</label>
+//                 <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="form-input" required />
 //               </div>
 //               <div className="form-group">
-//                 <label className="form-label">Event Description</label>
-//                 <textarea
-//                   name="eventDescription"
-//                   value={formData.eventDescription}
-//                   onChange={handleInputChange}
-//                   className="form-textarea"
-//                   rows="3"
-//                 />
+//                 <label className="form-label">Description</label>
+//                 <textarea name="description" value={formData.description} onChange={handleInputChange} className="form-textarea" rows="3" />
 //               </div>
-//               <div className="form-group">
-//                 <label className="form-label">Start Date</label>
-//                 <input
-//                   type="date"
-//                   name="startDate"
-//                   value={formData.startDate}
-//                   onChange={handleInputChange}
-//                   className="form-input"
-//                   required
-//                 />
-//               </div>
-//               <div className="form-group">
-//                 <label className="form-label">End Date</label>
-//                 <input
-//                   type="date"
-//                   name="endDate"
-//                   value={formData.endDate}
-//                   onChange={handleInputChange}
-//                   className="form-input"
-//                   required
-//                 />
+//               <div className="form-grid">
+//                 <div className="form-group">
+//                   <label className="form-label">Start Date</label>
+//                   <input type="date" name="start_date" value={formData.start_date} onChange={handleInputChange} className="form-input" required />
+//                 </div>
+//                 <div className="form-group">
+//                   <label className="form-label">Start Time</label>
+//                   <input type="time" name="start_time" value={formData.start_time} onChange={handleInputChange} className="form-input" required />
+//                 </div>
+//                 <div className="form-group">
+//                   <label className="form-label">End Date</label>
+//                   <input type="date" name="end_date" value={formData.end_date} onChange={handleInputChange} className="form-input" required />
+//                 </div>
+//                 <div className="form-group">
+//                   <label className="form-label">End Time</label>
+//                   <input type="time" name="end_time" value={formData.end_time} onChange={handleInputChange} className="form-input" required />
+//                 </div>
 //               </div>
 //               <div className="form-actions">
-//                 <button type="submit" className="btn btn-success">
-//                   Create Event
-//                 </button>
-//                 <button
-//                   type="button"
-//                   className="btn btn-secondary"
-//                   onClick={() => setShowCreateForm(false)}
-//                 >
-//                   Cancel
-//                 </button>
+//                 <button type="submit" className="btn btn-success">Create Event</button>
+//                 <button type="button" className="btn btn-secondary" onClick={() => setShowCreateForm(false)}>Cancel</button>
 //               </div>
 //             </form>
 //           </div>
 //         )}
 
+//         <div className="reports-section">
+//           <h3 className="section-title">Generate Reports</h3>
+//           <div className="report-generator">
+//             <h4>Report by Date Range</h4>
+//             <div className="form-group-inline">
+//               <input type="date" className="form-input" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} />
+//               <span>to</span>
+//               <input type="date" className="form-input" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} />
+//               <button className="btn btn-info" onClick={handleDateRangeReport}>Download Date Range Report</button>
+//             </div>
+//           </div>
+//         </div>
+        
+//         <div className="tabs">
+//             <button className={activeTab === 'current' ? 'active' : ''} onClick={() => setActiveTab('current')}>Current</button>
+//             <button className={activeTab === 'upcoming' ? 'active' : ''} onClick={() => setActiveTab('upcoming')}>Upcoming</button>
+//             <button className={activeTab === 'past' ? 'active' : ''} onClick={() => setActiveTab('past')}>Past</button>
+//         </div>
+
 //         <div>
-//           <h1 className="section-title">Current Events</h1>
-//           {events.length === 0 ? (
+//           <h1 className="section-title">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Programs</h1>
+//           {loading ? <div className="loading">Loading...</div> : events.length === 0 ? (
 //             <div className="empty-state">
-//               <div className="empty-state-icon">📅</div>
-//               <div className="empty-state-text">No events found</div>
-//               <div className="empty-state-subtext">Create your first event to get started</div>
+//               <div className="empty-state-text">No {activeTab} programs found.</div>
 //             </div>
 //           ) : (
 //             <div className="events-list">
 //               {events.map((event) => (
-//                 <div
-//                   key={event.event_id}
-//                   className="event-card fade-in"
-//                   onClick={() => navigate(`/admin/event/${event.event_id}`)}
-//                 >
-//                   <h2 className="event-title">{event.name}</h2>
-//                   <p className="event-description">{event.description}</p>
-//                   <div className="event-footer">
-//                     <span className="event-dates">
-//                       {new Date(event.start_date).toLocaleDateString()} - {new Date(event.end_date).toLocaleDateString()}
-//                     </span>
-//                     <Link
-//                       to={`/admin/event/${event.event_id}`}
-//                       className="event-link"
-//                       onClick={(e) => e.stopPropagation()}
-//                     >
-//                       Manage Event →
-//                     </Link>
+//                 <div key={event.event_id} className="event-card fade-in">
+//                   <div className="event-card-main" onClick={() => navigate(`/admin/event/${event.event_id}`)}>
+//                     <h2 className="event-title">{event.name}</h2>
+//                     <p className="event-description">{event.description}</p>
+//                     <div className="event-footer">
+//                       <span className="event-dates">
+//                         {new Date(event.start_date).toLocaleDateString()} - {new Date(event.end_date).toLocaleDateString()}
+//                       </span>
+//                     </div>
 //                   </div>
+//                    <div className="event-card-actions">
+//                       <button className="btn btn-outline-secondary" onClick={() => handleEventReport(event.event_id, event.name)}>
+//                         Event Report
+//                       </button>
+//                    </div>
 //                 </div>
 //               ))}
 //             </div>
@@ -701,31 +704,48 @@
 // export default AdminDashboard;
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Link, useNavigate } from "react-router-dom";
-import "./AdminDashboard.css"; // Import the CSS file
+import { useNavigate } from "react-router-dom";
+import "./AdminDashboard.css"; // Assuming you have this CSS file for styling
+// NEW: Import the xlsx library to generate the Excel template
+import * as XLSX from "xlsx";
 
 const AdminDashboard = () => {
   const [events, setEvents] = useState([]);
+  const [activeTab, setActiveTab] = useState("current");
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [formData, setFormData] = useState({
-    eventName: "",
-    eventDescription: "",
-    startDate: "",
-    endDate: "",
-    startTime: "",
-    endTime: "",
+    name: "",
+    description: "",
+    start_date: "",
+    end_date: "",
+    start_time: "",
+    end_time: "",
   });
 
-  useEffect(() => {
-    fetchEvents();
-  }, []);
+  // State for report generation
+  const [reportStartDate, setReportStartDate] = useState("");
+  const [reportEndDate, setReportEndDate] = useState("");
 
-  const fetchEvents = () => {
+  // NEW: State for the Excel file upload
+  const [excelFile, setExcelFile] = useState(null);
+
+  useEffect(() => {
+    fetchEvents(activeTab);
+  }, [activeTab]);
+
+  const fetchEvents = (tab) => {
+    setLoading(true);
+    const endpoint = `http://localhost:8080/events/${tab}`;
     axios
-      .get("http://localhost:8080/events/current")
-      .then((res) => setEvents(res.data))
-      .catch((err) => console.error("Error fetching events:", err));
+      .get(endpoint)
+      .then((res) => setEvents(res.data || []))
+      .catch((err) => {
+        console.error(`Error fetching ${tab} events:`, err);
+        setEvents([]);
+      })
+      .finally(() => setLoading(false));
   };
 
   const handleInputChange = (e) => {
@@ -735,33 +755,122 @@ const AdminDashboard = () => {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
-
     axios
-      .post("http://localhost:8080/events", {
-        name: formData.eventName,
-        description: formData.eventDescription,
-        start_date: formData.startDate,
-        end_date: formData.endDate,
-        start_time: formData.startTime,
-        end_time: formData.endTime,
-      })
-      .then((response) => {
-        console.log("Event created:", response.data);
-        setFormData({
-          eventName: "",
-          eventDescription: "",
-          startDate: "",
-          endDate: "",
-          startTime: "",
-          endTime: "",
-        });
+      .post("http://localhost:8080/events", formData)
+      .then(() => {
+        setFormData({ name: "", description: "", start_date: "", end_date: "", start_time: "", end_time: "" });
         setShowCreateForm(false);
-        fetchEvents();
+        fetchEvents(activeTab);
+        alert("Event created successfully!");
       })
       .catch((error) => {
         console.error("Error creating event:", error);
-        alert("Failed to create event. Please try again.");
+        alert(error.response?.data?.error || "Failed to create event. Please try again.");
       });
+  };
+
+  // NEW: Handler for selecting the Excel file
+  const handleFileChange = (e) => {
+    setExcelFile(e.target.files[0]);
+  };
+
+  // NEW: Handler for submitting the Excel file to the backend
+  const handleExcelSubmit = (e) => {
+    e.preventDefault();
+    if (!excelFile) {
+      alert("Please select an Excel file to upload.");
+      return;
+    }
+
+    const uploadData = new FormData();
+    // The key 'excel_file' must match what the backend Go function expects
+    uploadData.append("excel_file", excelFile);
+
+    axios
+      .post("http://localhost:8080/events/create-from-excel", uploadData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+      .then((res) => {
+        alert("Event and roles processed successfully from Excel file!");
+        console.log("Server Response:", res.data); // Log the detailed server response
+        setExcelFile(null); // Clear the file input
+        document.getElementById("excel-file-input").value = ""; // Reset the input field
+        fetchEvents(activeTab); // Refresh the events list
+      })
+      .catch((error) => {
+        console.error("Error uploading Excel file:", error);
+        alert(error.response?.data?.error || "Failed to process Excel file. Please check the format and try again.");
+      });
+  };
+
+  // NEW: Function to generate and download the sample Excel template
+  const handleDownloadTemplate = () => {
+    // Data for the 'EventDetails' sheet
+    const eventDetailsData = [
+      ["Event Name", "Annual Faculty Conference 2025"],
+      ["Start Date", "2025-11-15"],
+      ["Start Time", "09:00"],
+      ["End Date", "2025-11-16"],
+      ["End Time", "17:00"],
+      ["Description", "A two-day conference for all faculty members."],
+    ];
+
+    // Data for the 'Roles' sheet
+    const rolesData = [
+      ["Role Name", "Description", "Head Count", "Points", "Assigned Teacher Name", "Assigned Teacher Department"],
+      ["Event Coordinator", "Oversees the entire event logistics.", 1, 100, "Dr. Evelyn Reed", "Administration"],
+      ["Session Moderator", "Manages Q&A for the morning session.", 2, 50, "Prof. Samuel Chen", "Computer Science"],
+      ["Workshop Facilitator", "Leads the workshop on AI.", 1, 75, "", ""],
+      ["Registration Desk", "Manages attendee check-in.", 4, 20, "", ""],
+      ["Technical Support", "Handles AV and technical issues.", 2, 30, "Mr. David Lee", "IT Services"],
+    ];
+
+    // Create worksheets
+    const eventDetailsSheet = XLSX.utils.aoa_to_sheet(eventDetailsData);
+    const rolesSheet = XLSX.utils.aoa_to_sheet(rolesData);
+
+    // Create a new workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, eventDetailsSheet, "EventDetails");
+    XLSX.utils.book_append_sheet(wb, rolesSheet, "Roles");
+
+    // Trigger the download
+    XLSX.writeFile(wb, "Event_Creation_Template.xlsx");
+  };
+
+  const handleDownload = (url, filename) => {
+    axios
+      .get(url, { responseType: "blob" })
+      .then((response) => {
+        const blob = new Blob([response.data], { type: "text/csv" });
+        const link = document.createElement("a");
+        link.href = window.URL.createObjectURL(blob);
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      })
+      .catch((error) => {
+        console.error("Error downloading file:", error);
+        alert("Failed to download report. The report may be empty or an error occurred.");
+      });
+  };
+
+  const handleDateRangeReport = () => {
+    if (!reportStartDate || !reportEndDate) {
+      alert("Please select both a start and end date for the report.");
+      return;
+    }
+    const url = `http://localhost:8080/reports/daterange?start_date=${reportStartDate}&end_date=${reportEndDate}`;
+    handleDownload(url, `report_${reportStartDate}_to_${reportEndDate}.csv`);
+  };
+
+  const handleEventReport = (eventId, eventName) => {
+    if (!eventId) return;
+    const url = `http://localhost:8080/reports/event/${eventId}`;
+    handleDownload(url, `event_report_${eventName.replace(/\s+/g, "_")}.csv`);
   };
 
   return (
@@ -769,131 +878,120 @@ const AdminDashboard = () => {
       <div className="dashboard-container">
         <h2 className="dashboard-title">Admin Dashboard</h2>
 
-        <button
-          className="btn btn-primary mb-6"
-          onClick={() => setShowCreateForm(!showCreateForm)}
-        >
-          {showCreateForm ? "Cancel" : "Create Event"}
-        </button>
+        {/* --- Create Event Section --- */}
+        <div className="creation-section">
+          {/* Manual Creation */}
+          <button className="btn btn-primary mb-6" onClick={() => setShowCreateForm(!showCreateForm)}>
+            {showCreateForm ? "Cancel Manual Creation" : "Create Program Manually"}
+          </button>
+          
+          {/* NEW: Excel Creation Form */}
+          <div className="excel-upload-form">
+            <h3 className="form-title">Create Program from Excel</h3>
+            <p>Upload a formatted Excel file to create an event and assign roles automatically.</p>
+            <form onSubmit={handleExcelSubmit} className="form-group-inline">
+              <input 
+                id="excel-file-input"
+                type="file" 
+                onChange={handleFileChange} 
+                className="form-input" 
+                accept=".xlsx, .xls" 
+              />
+              <button type="submit" className="btn btn-success">Upload & Create</button>
+            </form>
+            <button onClick={handleDownloadTemplate} className="btn-link">
+              Download Sample Template
+            </button>
+          </div>
+        </div>
 
         {showCreateForm && (
           <div className="create-form">
-            <h3 className="form-title">Create New Event</h3>
+            <h3 className="form-title">Create New Program Manually</h3>
             <form onSubmit={handleFormSubmit}>
-              <div className="form-group">
-                <label className="form-label">Event Name</label>
-                <input
-                  type="text"
-                  name="eventName"
-                  value={formData.eventName}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
-                />
+              {/* ... form fields for manual creation remain the same ... */}
+               <div className="form-group">
+                <label className="form-label">Name</label>
+                <input type="text" name="name" value={formData.name} onChange={handleInputChange} className="form-input" required />
               </div>
               <div className="form-group">
-                <label className="form-label">Event Description</label>
-                <textarea
-                  name="eventDescription"
-                  value={formData.eventDescription}
-                  onChange={handleInputChange}
-                  className="form-textarea"
-                  rows="3"
-                />
+                <label className="form-label">Description</label>
+                <textarea name="description" value={formData.description} onChange={handleInputChange} className="form-textarea" rows="3" />
               </div>
-              <div className="form-group">
-                <label className="form-label">Start Date</label>
-                <input
-                  type="date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">Start Time</label>
-                <input
-                  type="time"
-                  name="startTime"
-                  value={formData.startTime}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">End Date</label>
-                <input
-                  type="date"
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label className="form-label">End Time</label>
-                <input
-                  type="time"
-                  name="endTime"
-                  value={formData.endTime}
-                  onChange={handleInputChange}
-                  className="form-input"
-                  required
-                />
+              <div className="form-grid">
+                <div className="form-group">
+                  <label className="form-label">Start Date</label>
+                  <input type="date" name="start_date" value={formData.start_date} onChange={handleInputChange} className="form-input" required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">Start Time</label>
+                  <input type="time" name="start_time" value={formData.start_time} onChange={handleInputChange} className="form-input" required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">End Date</label>
+                  <input type="date" name="end_date" value={formData.end_date} onChange={handleInputChange} className="form-input" required />
+                </div>
+                <div className="form-group">
+                  <label className="form-label">End Time</label>
+                  <input type="time" name="end_time" value={formData.end_time} onChange={handleInputChange} className="form-input" required />
+                </div>
               </div>
               <div className="form-actions">
-                <button type="submit" className="btn btn-success">
-                  Create Event
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-secondary"
-                  onClick={() => setShowCreateForm(false)}
-                >
-                  Cancel
-                </button>
+                <button type="submit" className="btn btn-success">Create Event</button>
+                <button type="button" className="btn btn-secondary" onClick={() => setShowCreateForm(false)}>Cancel</button>
               </div>
             </form>
           </div>
         )}
 
+        {/* --- Reports Section --- */}
+        <div className="reports-section">
+          {/* ... reports section remains the same ... */}
+          <h3 className="section-title">Generate Reports</h3>
+          <div className="report-generator">
+            <h4>Report by Date Range</h4>
+            <div className="form-group-inline">
+              <input type="date" className="form-input" value={reportStartDate} onChange={(e) => setReportStartDate(e.target.value)} />
+              <span>to</span>
+              <input type="date" className="form-input" value={reportEndDate} onChange={(e) => setReportEndDate(e.target.value)} />
+              <button className="btn btn-info" onClick={handleDateRangeReport}>Download Date Range Report</button>
+            </div>
+          </div>
+        </div>
+        
+        {/* --- Events List Section --- */}
+        <div className="tabs">
+            {/* ... tabs remain the same ... */}
+            <button className={activeTab === 'current' ? 'active' : ''} onClick={() => setActiveTab('current')}>Current</button>
+            <button className={activeTab === 'upcoming' ? 'active' : ''} onClick={() => setActiveTab('upcoming')}>Upcoming</button>
+            <button className={activeTab === 'past' ? 'active' : ''} onClick={() => setActiveTab('past')}>Past</button>
+        </div>
+
         <div>
-          <h1 className="section-title">Current Events</h1>
-          {events.length === 0 ? (
+            {/* ... events list remains the same ... */}
+            <h1 className="section-title">{activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Programs</h1>
+          {loading ? <div className="loading">Loading...</div> : events.length === 0 ? (
             <div className="empty-state">
-              <div className="empty-state-icon">📅</div>
-              <div className="empty-state-text">No events found</div>
-              <div className="empty-state-subtext">
-                Create your first event to get started
-              </div>
+              <div className="empty-state-text">No {activeTab} programs found.</div>
             </div>
           ) : (
             <div className="events-list">
               {events.map((event) => (
-                <div
-                  key={event.event_id}
-                  className="event-card fade-in"
-                  onClick={() => navigate(`/admin/event/${event.event_id}`)}
-                >
-                  <h2 className="event-title">{event.name}</h2>
-                  <p className="event-description">{event.description}</p>
-                  <div className="event-footer">
-                    <span className="event-dates">
-                      {new Date(event.start_date).toLocaleDateString()} -{" "}
-                      {new Date(event.end_date).toLocaleDateString()}
-                    </span>
-                    <Link
-                      to={`/admin/event/${event.event_id}`}
-                      className="event-link"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      Manage Event →
-                    </Link>
+                <div key={event.event_id} className="event-card fade-in">
+                  <div className="event-card-main" onClick={() => navigate(`/admin/event/${event.event_id}`)}>
+                    <h2 className="event-title">{event.name}</h2>
+                    <p className="event-description">{event.description}</p>
+                    <div className="event-footer">
+                      <span className="event-dates">
+                        {new Date(event.start_date).toLocaleDateString()} - {new Date(event.end_date).toLocaleDateString()}
+                      </span>
+                    </div>
                   </div>
+                   <div className="event-card-actions">
+                      <button className="btn btn-outline-secondary" onClick={() => handleEventReport(event.event_id, event.name)}>
+                        Event Report
+                      </button>
+                   </div>
                 </div>
               ))}
             </div>

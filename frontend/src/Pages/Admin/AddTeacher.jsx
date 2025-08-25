@@ -17,7 +17,7 @@
 //   const handleSubmit = async (e) => {
 //     e.preventDefault();
 
-//     const res = await fetch('http://localhost:8080/teachers', {
+//     const res = await fetch('https://facultypointsportal.onrender.com/teachers', {
 //       method: 'POST',
 //       headers: { 'Content-Type': 'application/json' },
 //       body: JSON.stringify(teacher)
@@ -103,7 +103,7 @@ function AddTeacher() {
     e.preventDefault();
 
     try {
-      const res = await fetch('http://localhost:8080/teachers', {
+      const res = await fetch('https://facultypointsportal.onrender.com/teachers', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(teacher)

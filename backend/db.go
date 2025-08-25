@@ -13,7 +13,9 @@ func initMongoDB() error {
 	defer cancel()
 
 	// Replace with your MongoDB connection string
-	clientOptions := options.Client().ApplyURI("mongodb://localhost:27017")
+	clientOptions := options.Client().ApplyURI(
+		"mongodb+srv://userpoint1:teacherportal@cluster0.4jvpwwj.mongodb.net/?retryWrites=true&w=majority&appName=pointportal",
+	)
 	var err error
 	client, err = mongo.Connect(ctx, clientOptions)
 	if err != nil {

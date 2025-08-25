@@ -55,7 +55,7 @@ type Teacher struct {
 	Email          string             `json:"email" bson:"email"`
 	Departmentname string             `json:"departmentname" bson:"departmentname"`
 	ProfilePhoto   string             `json:"profile_photo" bson:"profile_photo"`
-	Point          int                `json:"point,omitempty" bson:"point,omitempty"`
+	Point          int                `json:"point,omitempty" bson:"point"`
 	// UserID       primitive.ObjectID `json:"user_id" bson:"user_id"`
 	UserID           primitive.ObjectID `json:"user_id,omitempty" bson:"user_id,omitempty"`
 	Assginedteachers []RoleRef          `json:"assginedteachers,omitempty" bson:"assginedteachers,omitempty"`

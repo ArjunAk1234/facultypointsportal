@@ -41,8 +41,8 @@
 //         setUserName(name);
 
 //         const [dashboardRes, assignmentsRes] = await Promise.all([
-//           fetch('http://localhost:8080/dashboard/faculty').then(res => res.json()),
-//           fetch(`http://localhost:8080/teacher-assignments/${teacherId}`).then(res => res.json())
+//           fetch('https://facultypointsportal.onrender.com/dashboard/faculty').then(res => res.json()),
+//           fetch(`https://facultypointsportal.onrender.com/teacher-assignments/${teacherId}`).then(res => res.json())
 //         ]);
 
 //         setLeaderboard(dashboardRes.leaderboard || []);
@@ -64,7 +64,7 @@
 
 //   const fetchNotificationCount = async (teacherId) => {
 //     try {
-//       const response = await fetch(`http://localhost:8080/teachers/${teacherId}/notifications/count`);
+//       const response = await fetch(`https://facultypointsportal.onrender.com/teachers/${teacherId}/notifications/count`);
 //       const data = await response.json();
 //       setNotificationCount(data);
 //     } catch (err)     { console.error('Error fetching notification count:', err);
@@ -77,7 +77,7 @@
 //     setNotificationLoading(true);
 //     try {
 //       const response = await fetch(
-//         `http://localhost:8080/teachers/${currentTeacherId}/notifications?show_read=${showAll}`
+//         `https://facultypointsportal.onrender.com/teachers/${currentTeacherId}/notifications?show_read=${showAll}`
 //       );
 //       const data = await response.json();
 //       setNotifications(Array.isArray(data) ? data : []);
@@ -90,7 +90,7 @@
 
 //   const markAsRead = async (notificationId) => {
 //     try {
-//       await fetch(`http://localhost:8080/notifications/${notificationId}/read`, {
+//       await fetch(`https://facultypointsportal.onrender.com/notifications/${notificationId}/read`, {
 //         method: 'PUT'
 //       });
 
@@ -108,7 +108,7 @@
 
 //   const deleteNotification = async (notificationId) => {
 //     try {
-//       await fetch(`http://localhost:8080/notifications/${notificationId}`, {
+//       await fetch(`https://facultypointsportal.onrender.com/notifications/${notificationId}`, {
 //         method: 'DELETE'
 //       });
 
@@ -123,7 +123,7 @@
 //     if (!currentTeacherId) return;
 
 //     try {
-//       await fetch(`http://localhost:8080/teachers/${currentTeacherId}/notifications/read-all`, {
+//       await fetch(`https://facultypointsportal.onrender.com/teachers/${currentTeacherId}/notifications/read-all`, {
 //         method: 'PUT'
 //       });
 
@@ -171,7 +171,7 @@
 //   const handleEventClick = async (event) => {
 //     setSelectedEvent(event);
 //     try {
-//       const response = await fetch(`http://localhost:8080/events/assigned-teachers/${event.event_id}`);
+//       const response = await fetch(`https://facultypointsportal.onrender.com/events/assigned-teachers/${event.event_id}`);
 //       if (!response.ok) {
 //         throw new Error('Failed to fetch assigned teachers');
 //       }
@@ -529,8 +529,8 @@ const TeacherDashboard = () => {
         setUserName(name);
 
         const [dashboardRes, assignmentsRes] = await Promise.all([
-          fetch('http://localhost:8080/dashboard/faculty').then(res => res.json()),
-          fetch(`http://localhost:8080/teacher-assignments/${teacherId}`).then(res => res.json())
+          fetch('https://facultypointsportal.onrender.com/dashboard/faculty').then(res => res.json()),
+          fetch(`https://facultypointsportal.onrender.com/teacher-assignments/${teacherId}`).then(res => res.json())
         ]);
 
         setLeaderboard(dashboardRes.leaderboard || []);
@@ -552,7 +552,7 @@ const TeacherDashboard = () => {
 
   const fetchNotificationCount = async (teacherId) => {
     try {
-      const response = await fetch(`http://localhost:8080/teachers/${teacherId}/notifications/count`);
+      const response = await fetch(`https://facultypointsportal.onrender.com/teachers/${teacherId}/notifications/count`);
       const data = await response.json();
       setNotificationCount(data);
     } catch (err)     { console.error('Error fetching notification count:', err);
@@ -565,7 +565,7 @@ const TeacherDashboard = () => {
     setNotificationLoading(true);
     try {
       const response = await fetch(
-        `http://localhost:8080/teachers/${currentTeacherId}/notifications?show_read=${showAll}`
+        `https://facultypointsportal.onrender.com/teachers/${currentTeacherId}/notifications?show_read=${showAll}`
       );
       const data = await response.json();
       setNotifications(Array.isArray(data) ? data : []);
@@ -578,7 +578,7 @@ const TeacherDashboard = () => {
 
   const markAsRead = async (notificationId) => {
     try {
-      await fetch(`http://localhost:8080/notifications/${notificationId}/read`, {
+      await fetch(`https://facultypointsportal.onrender.com/notifications/${notificationId}/read`, {
         method: 'PUT'
       });
 
@@ -596,7 +596,7 @@ const TeacherDashboard = () => {
 
   const deleteNotification = async (notificationId) => {
     try {
-      await fetch(`http://localhost:8080/notifications/${notificationId}`, {
+      await fetch(`https://facultypointsportal.onrender.com/notifications/${notificationId}`, {
         method: 'DELETE'
       });
 
@@ -611,7 +611,7 @@ const TeacherDashboard = () => {
     if (!currentTeacherId) return;
 
     try {
-      await fetch(`http://localhost:8080/teachers/${currentTeacherId}/notifications/read-all`, {
+      await fetch(`https://facultypointsportal.onrender.com/teachers/${currentTeacherId}/notifications/read-all`, {
         method: 'PUT'
       });
 
@@ -659,7 +659,7 @@ const TeacherDashboard = () => {
   const handleEventClick = async (event) => {
     setSelectedEvent(event);
     try {
-      const response = await fetch(`http://localhost:8080/events/assigned-teachers/${event.event_id}`);
+      const response = await fetch(`https://facultypointsportal.onrender.com/events/assigned-teachers/${event.event_id}`);
       if (!response.ok) {
         throw new Error('Failed to fetch assigned teachers');
       }

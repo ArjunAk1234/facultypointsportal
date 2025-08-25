@@ -900,28 +900,47 @@ export default function TeachersList() {
   });
   const [notification, setNotification] = useState(null);
 
+  // useEffect(() => {
+  //   const fetchTeachers = async () => {
+  //     try {
+  //       setLoading(true);
+  //       const response = await fetch("https://facultypointsportal.onrender.com/teachers");
+
+  //       if (!response.ok) {
+  //         throw new Error(`Error fetching teachers: ${response.status}`);
+  //       }
+
+  //       const data = await response.json();
+  //       setTeachers(data);
+  //       setLoading(false);
+  //     } catch (err) {
+  //       setError(err.message);
+  //       setLoading(false);
+  //     }
+  //   };
+
+  //   fetchTeachers();
+  // }, []);
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
         setLoading(true);
-        const response = await fetch("https://facultypointsportal.onrender.com/teachers");
-
+        const response = await fetch("http://localhost:8080/teachers");
+  
         if (!response.ok) {
           throw new Error(`Error fetching teachers: ${response.status}`);
         }
-
+  
         const data = await response.json();
-        setTeachers(data);
+  
+        // If data is null, fallback to empty array
+        setTeachers(Array.isArray(data) ? data : []);
         setLoading(false);
       } catch (err) {
         setError(err.message);
         setLoading(false);
       }
     };
-
-    fetchTeachers();
-  }, []);
-
   const showNotification = (message, type = "success") => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);

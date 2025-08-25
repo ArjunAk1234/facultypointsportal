@@ -921,11 +921,13 @@ export default function TeachersList() {
 
   //   fetchTeachers();
   // }, []);
+
+      
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
         setLoading(true);
-        const response = await fetch("http://localhost:8080/teachers");
+        const response = await fetch("https://facultypointsportal.onrender.com/teachers");
   
         if (!response.ok) {
           throw new Error(`Error fetching teachers: ${response.status}`);

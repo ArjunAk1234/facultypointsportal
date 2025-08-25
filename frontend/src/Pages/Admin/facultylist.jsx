@@ -18,7 +18,7 @@
 // // //     const fetchTeachers = async () => {
 // // //       try {
 // // //         setLoading(true);
-// // //         const response = await fetch("https://facultypointsportal.onrender.com/teachers");
+// // //         const response = await fetch("http://localhost:8080/teachers");
 
 // // //         if (!response.ok) {
 // // //           throw new Error(`Error fetching teachers: ${response.status}`);
@@ -64,7 +64,7 @@
 
 // // //   const handleSaveEdit = async (teacherId) => {
 // // //     try {
-// // //       const response = await fetch(`https://facultypointsportal.onrender.com/teacher/${teacherId}`, {
+// // //       const response = await fetch(`http://localhost:8080/teacher/${teacherId}`, {
 // // //         method: "PUT",
 // // //         headers: {
 // // //           "Content-Type": "application/json",
@@ -101,7 +101,7 @@
 // // //     if (!shouldDelete) return;
 
 // // //     try {
-// // //       const response = await fetch(`https://facultypointsportal.onrender.com/teacher/${teacherId}`, {
+// // //       const response = await fetch(`http://localhost:8080/teacher/${teacherId}`, {
 // // //         method: "DELETE",
 // // //       });
 
@@ -305,7 +305,7 @@
 // //     const fetchTeachers = async () => {
 // //       try {
 // //         setLoading(true);
-// //         const response = await fetch("https://facultypointsportal.onrender.com/teachers");
+// //         const response = await fetch("http://localhost:8080/teachers");
 
 // //         if (!response.ok) {
 // //           throw new Error(`Error fetching teachers: ${response.status}`);
@@ -351,7 +351,7 @@
 
 // //   const handleSaveEdit = async (teacherId) => {
 // //     try {
-// //       const response = await fetch(`https://facultypointsportal.onrender.com/teacher/${teacherId}`, {
+// //       const response = await fetch(`http://localhost:8080/teacher/${teacherId}`, {
 // //         method: "PUT",
 // //         headers: {
 // //           "Content-Type": "application/json",
@@ -388,7 +388,7 @@
 // //     if (!shouldDelete) return;
 
 // //     try {
-// //       const response = await fetch(`https://facultypointsportal.onrender.com/teacher/${teacherId}`, {
+// //       const response = await fetch(`http://localhost:8080/teacher/${teacherId}`, {
 // //         method: "DELETE",
 // //       });
 
@@ -579,7 +579,7 @@
 //     const fetchTeachers = async () => {
 //       try {
 //         setLoading(true);
-//         const response = await fetch("https://facultypointsportal.onrender.com/teachers");
+//         const response = await fetch("http://localhost:8080/teachers");
 
 //         if (!response.ok) {
 //           throw new Error(`Error fetching teachers: ${response.status}`);
@@ -625,7 +625,7 @@
 
 //   const handleSaveEdit = async (teacherId) => {
 //     try {
-//       const response = await fetch(`https://facultypointsportal.onrender.com/teacher/${teacherId}`, {
+//       const response = await fetch(`http://localhost:8080/teacher/${teacherId}`, {
 //         method: "PUT",
 //         headers: {
 //           "Content-Type": "application/json",
@@ -671,7 +671,7 @@
 //     if (!shouldDelete) return;
 
 //     try {
-//       const response = await fetch(`https://facultypointsportal.onrender.com/teacher/${teacherId}`, {
+//       const response = await fetch(`http://localhost:8080/teacher/${teacherId}`, {
 //         method: "DELETE",
 //       });
 
@@ -690,7 +690,7 @@
 //   const handleDownloadReport = async (teacherId, teacherName) => {
 //       showNotification("Generating report...", "info");
 //       try {
-//           const response = await fetch(`https://facultypointsportal.onrender.com/reports/teacher/${teacherId}`);
+//           const response = await fetch(`http://localhost:8080/reports/teacher/${teacherId}`);
 
 //           if (!response.ok) {
 //               throw new Error(`Failed to download report: ${response.statusText}`);
@@ -904,7 +904,7 @@ export default function TeachersList() {
   //   const fetchTeachers = async () => {
   //     try {
   //       setLoading(true);
-  //       const response = await fetch("https://facultypointsportal.onrender.com/teachers");
+  //       const response = await fetch("http://localhost:8080/teachers");
 
   //       if (!response.ok) {
   //         throw new Error(`Error fetching teachers: ${response.status}`);
@@ -918,16 +918,11 @@ export default function TeachersList() {
   //       setLoading(false);
   //     }
   //   };
-
-  //   fetchTeachers();
-  // }, []);
-
-      
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
         setLoading(true);
-        const response = await fetch("https://facultypointsportal.onrender.com/teachers");
+        const response = await fetch("http://localhost:8080/teachers");
   
         if (!response.ok) {
           throw new Error(`Error fetching teachers: ${response.status}`);
@@ -943,8 +938,12 @@ export default function TeachersList() {
         setLoading(false);
       }
     };
-          fetchTeachers();
+  
+
+
+    fetchTeachers();
   }, []);
+
   const showNotification = (message, type = "success") => {
     setNotification({ message, type });
     setTimeout(() => setNotification(null), 3000);
@@ -974,7 +973,7 @@ export default function TeachersList() {
 
   const handleSaveEdit = async (teacherId) => { // teacherId is now the _id
     try {
-      const response = await fetch(`https://facultypointsportal.onrender.com/teacher/${teacherId}`, {
+      const response = await fetch(`http://localhost:8080/teacher/${teacherId}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -1019,7 +1018,7 @@ export default function TeachersList() {
     if (!shouldDelete) return;
 
     try {
-      const response = await fetch(`https://facultypointsportal.onrender.com/teacher/${teacherId}`, {
+      const response = await fetch(`http://localhost:8080/teacher/${teacherId}`, {
         method: "DELETE",
       });
 
@@ -1038,7 +1037,7 @@ export default function TeachersList() {
   const handleDownloadReport = async (teacherId, teacherName) => { // teacherId is now the _id
       showNotification("Generating report...", "info");
       try {
-          const response = await fetch(`https://facultypointsportal.onrender.com/reports/teacher/${teacherId}`);
+          const response = await fetch(`http://localhost:8080/reports/teacher/${teacherId}`);
 
           if (!response.ok) {
               throw new Error(`Failed to download report: ${response.statusText}`);

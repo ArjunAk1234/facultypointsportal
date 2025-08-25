@@ -9,7 +9,7 @@ const  FacultyEventHistory= () => {
 
   useEffect(() => {
     axios
-      .get("http://localhost:8080/events/past") // Replace with your backend URL
+      .get("https://facultypointsportal.onrender.com/events/past") // Replace with your backend URL
       .then((res) => {
         setEvents(res.data);
         setLoading(false);

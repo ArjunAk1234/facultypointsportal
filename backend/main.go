@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -14,7 +15,10 @@ func main() {
 	if err := initMongoDB(); err != nil {
 		panic(err)
 	}
-
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080" // fallback for local dev
+	}
 	r := gin.Default()
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"*"},
@@ -91,5 +95,5 @@ func main() {
 	r.POST("/events/create-from-excel", CreateEventFromExcel)
 	// In your main function where you define routes...
 	r.POST("/events/:eventid/roles/:roleid/auto-assign", AutoAssignLowestPointTeacherToRole)
-	r.Run(":8080")
+	r.Run(":"+ port)
 }

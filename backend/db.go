@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"time"
+	"os"
 
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -11,10 +12,10 @@ import (
 func initMongoDB() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-
+	uri := os.Getenv("MONGODB_URI")
 	// Replace with your MongoDB connection string
 	clientOptions := options.Client().ApplyURI(
-		"mongodb+srv://userpoint1:teacherportal@cluster0.4jvpwwj.mongodb.net/?retryWrites=true&w=majority&appName=pointportal",
+		uri
 	)
 	var err error
 	client, err = mongo.Connect(ctx, clientOptions)

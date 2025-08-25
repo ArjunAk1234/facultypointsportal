@@ -10,7 +10,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  const { login } = useAuth(); // 👈 From your AuthContext
+  const { login } = useAuth(); 
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -18,7 +18,7 @@ const Login = () => {
     setError("");
 
     try {
-      const response = await axios.post("http://localhost:8080/login", {
+      const response = await axios.post("https://facultypointsportal.onrender.com/login", {
         email,
         password,
       });

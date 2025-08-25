@@ -15,7 +15,7 @@ func initMongoDB() error {
 	uri := os.Getenv("MONGODB_URI")
 	// Replace with your MongoDB connection string
 	clientOptions := options.Client().ApplyURI(
-		uri
+		uri,
 	)
 	var err error
 	client, err = mongo.Connect(ctx, clientOptions)

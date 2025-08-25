@@ -35,10 +35,10 @@
 // // //   const fetchAllData = async () => {
 // // //     try {
 // // //       const [eventRes, teachersRes, rolesRes, assignmentsRes] = await Promise.all([
-// // //         axios.get(`http://localhost:8080/eventid/${eventId}`),
-// // //         axios.get(`http://localhost:8080/teachers`),
-// // //         axios.get(`http://localhost:8080/events/${eventId}/roles`),
-// // //         axios.get(`http://localhost:8080/events/assigned-teachers/${eventId}`)
+// // //         axios.get(`https://facultypointsportal.onrender.com/eventid/${eventId}`),
+// // //         axios.get(`https://facultypointsportal.onrender.com/teachers`),
+// // //         axios.get(`https://facultypointsportal.onrender.com/events/${eventId}/roles`),
+// // //         axios.get(`https://facultypointsportal.onrender.com/events/assigned-teachers/${eventId}`)
 // // //       ]);
 
 // // //       setEventDetails(eventRes.data);
@@ -73,7 +73,7 @@
 // // //   const handleUpdateEvent = async (e) => {
 // // //     e.preventDefault();
 // // //     try {
-// // //       await axios.put(`http://localhost:8080/events/${eventId}`, eventFormData);
+// // //       await axios.put(`https://facultypointsportal.onrender.com/events/${eventId}`, eventFormData);
 // // //       alert("Event updated successfully!");
 // // //       setIsEventEditMode(false);
 // // //       await fetchAllData();
@@ -87,11 +87,11 @@
 // // //     e.preventDefault();
 // // //     try {
 // // //       if (isEditMode) {
-// // //         await axios.delete(`http://localhost:8080/delete-role-assignment`, {
+// // //         await axios.delete(`https://facultypointsportal.onrender.com/delete-role-assignment`, {
 // // //           data: { assignment_id: assignmentFormData.assignmentId, deduct_points: true }
 // // //         });
 // // //       }
-// // //       await axios.post(`http://localhost:8080/assignments`, {
+// // //       await axios.post(`https://facultypointsportal.onrender.com/assignments`, {
 // // //         teacher_id: assignmentFormData.teacherId,
 // // //         role_id: assignmentFormData.roleId,
 // // //         event_id: eventId
@@ -121,7 +121,7 @@
 // // //     setAutoAssigningRoleId(roleId); // Set loading state for this specific role's button
 // // //     try {
 // // //       // Send the count in the request body
-// // //       const response = await axios.post(`http://localhost:8080/events/${eventId}/roles/${roleId}/auto-assign`, {
+// // //       const response = await axios.post(`https://facultypointsportal.onrender.com/events/${eventId}/roles/${roleId}/auto-assign`, {
 // // //         count: count 
 // // //       });
 
@@ -148,7 +148,7 @@
 // // //   const handleDeleteAssignment = async (assignmentId) => {
 // // //     if (window.confirm("Are you sure? This will remove the assignment and deduct points.")) {
 // // //       try {
-// // //         await axios.delete(`http://localhost:8080/delete-role-assignment`, {
+// // //         await axios.delete(`https://facultypointsportal.onrender.com/delete-role-assignment`, {
 // // //           data: { assignment_id: assignmentId, deduct_points: true }
 // // //         });
 // // //         await fetchAllData();
@@ -166,7 +166,7 @@
 // // //     const rolePoints = parseInt(prompt("Enter points for this role:"), 10) || 0;
 // // //     const headCount = parseInt(prompt("Enter max teachers for this role:"), 10) || 1;
 // // //     try {
-// // //       await axios.post(`http://localhost:8080/roles/${eventId}`, {
+// // //       await axios.post(`https://facultypointsportal.onrender.com/roles/${eventId}`, {
 // // //         name: roleName, description: roleDescription, point: rolePoints, head_count: headCount
 // // //       });
 // // //       await fetchAllData();
@@ -194,7 +194,7 @@
 // // //     e.preventDefault();
 // // //     if (!currentAssignmentForEdit) return;
 // // //     try {
-// // //       await axios.put(`http://localhost:8080/assignments/edit/${currentAssignmentForEdit.id}`, {
+// // //       await axios.put(`https://facultypointsportal.onrender.com/assignments/edit/${currentAssignmentForEdit.id}`, {
 // // //         points: parseInt(newPoints, 10)
 // // //       });
 // // //       alert("Points updated successfully!");
@@ -426,10 +426,10 @@
 // //   const fetchAllData = async () => {
 // //     try {
 // //       const [eventRes, teachersRes, rolesRes, assignmentsRes] = await Promise.all([
-// //         axios.get(`http://localhost:8080/eventid/${eventId}`),
-// //         axios.get(`http://localhost:8080/teachers`),
-// //         axios.get(`http://localhost:8080/events/${eventId}/roles`),
-// //         axios.get(`http://localhost:8080/events/assigned-teachers/${eventId}`)
+// //         axios.get(`https://facultypointsportal.onrender.com/eventid/${eventId}`),
+// //         axios.get(`https://facultypointsportal.onrender.com/teachers`),
+// //         axios.get(`https://facultypointsportal.onrender.com/events/${eventId}/roles`),
+// //         axios.get(`https://facultypointsportal.onrender.com/events/assigned-teachers/${eventId}`)
 // //       ]);
 
 // //       setEventDetails(eventRes.data);
@@ -484,7 +484,7 @@
 // //   const handleUpdateEvent = async (e) => {
 // //     e.preventDefault();
 // //     try {
-// //       await axios.put(`http://localhost:8080/events/${eventId}`, eventFormData);
+// //       await axios.put(`https://facultypointsportal.onrender.com/events/${eventId}`, eventFormData);
 // //       alert("Event updated successfully!");
 // //       setIsEventEditMode(false);
 // //       await fetchAllData();
@@ -498,11 +498,11 @@
 // //     e.preventDefault();
 // //     try {
 // //       if (isEditMode) {
-// //         await axios.delete(`http://localhost:8080/delete-role-assignment`, {
+// //         await axios.delete(`https://facultypointsportal.onrender.com/delete-role-assignment`, {
 // //           data: { assignment_id: assignmentFormData.assignmentId, deduct_points: true }
 // //         });
 // //       }
-// //       await axios.post(`http://localhost:8080/assignments`, {
+// //       await axios.post(`https://facultypointsportal.onrender.com/assignments`, {
 // //         teacher_id: assignmentFormData.teacherId,
 // //         role_id: assignmentFormData.roleId,
 // //         event_id: eventId
@@ -531,7 +531,7 @@
 
 // //     setAutoAssigningRoleId(roleId);
 // //     try {
-// //       const response = await axios.post(`http://localhost:8080/events/${eventId}/roles/${roleId}/auto-assign`, {
+// //       const response = await axios.post(`https://facultypointsportal.onrender.com/events/${eventId}/roles/${roleId}/auto-assign`, {
 // //         count: count
 // //       });
 
@@ -557,7 +557,7 @@
 // //   const handleDeleteAssignment = async (assignmentId) => {
 // //     if (window.confirm("Are you sure? This will remove the assignment and deduct points.")) {
 // //       try {
-// //         await axios.delete(`http://localhost:8080/delete-role-assignment`, {
+// //         await axios.delete(`https://facultypointsportal.onrender.com/delete-role-assignment`, {
 // //           data: { assignment_id: assignmentId, deduct_points: true }
 // //         });
 // //         await fetchAllData();
@@ -575,7 +575,7 @@
 // //     const rolePoints = parseInt(prompt("Enter points for this role:"), 10) || 0;
 // //     const headCount = parseInt(prompt("Enter max teachers for this role:"), 10) || 1;
 // //     try {
-// //       await axios.post(`http://localhost:8080/roles/${eventId}`, {
+// //       await axios.post(`https://facultypointsportal.onrender.com/roles/${eventId}`, {
 // //         name: roleName, description: roleDescription, point: rolePoints, head_count: headCount
 // //       });
 // //       await fetchAllData();
@@ -603,7 +603,7 @@
 // //     e.preventDefault();
 // //     if (!currentAssignmentForEdit) return;
 // //     try {
-// //       await axios.put(`http://localhost:8080/assignments/edit/${currentAssignmentForEdit.id}`, {
+// //       await axios.put(`https://facultypointsportal.onrender.com/assignments/edit/${currentAssignmentForEdit.id}`, {
 // //         points: parseInt(newPoints, 10)
 // //       });
 // //       alert("Points updated successfully!");
@@ -839,10 +839,10 @@
 //   const fetchAllData = async () => {
 //     try {
 //       const [eventRes, teachersRes, rolesRes, assignmentsRes] = await Promise.all([
-//         axios.get(`http://localhost:8080/eventid/${eventId}`),
-//         axios.get(`http://localhost:8080/teachers`),
-//         axios.get(`http://localhost:8080/events/${eventId}/roles`),
-//         axios.get(`http://localhost:8080/events/assigned-teachers/${eventId}`)
+//         axios.get(`https://facultypointsportal.onrender.com/eventid/${eventId}`),
+//         axios.get(`https://facultypointsportal.onrender.com/teachers`),
+//         axios.get(`https://facultypointsportal.onrender.com/events/${eventId}/roles`),
+//         axios.get(`https://facultypointsportal.onrender.com/events/assigned-teachers/${eventId}`)
 //       ]);
 //       setEventDetails(eventRes.data);
 //       setEventFormData({ name: eventRes.data.name, description: eventRes.data.description, start_date: formatDateForInput(eventRes.data.start_date), end_date: formatDateForInput(eventRes.data.end_date), start_time: formatTimeForInput(eventRes.data.start_time), end_time: formatTimeForInput(eventRes.data.end_time) });
@@ -874,7 +874,7 @@
 //   const handleUpdateEvent = async (e) => {
 //     e.preventDefault();
 //     try {
-//       await axios.put(`http://localhost:8080/events/${eventId}`, eventFormData);
+//       await axios.put(`https://facultypointsportal.onrender.com/events/${eventId}`, eventFormData);
 //       alert("Event updated successfully!");
 //       setIsEventEditMode(false);
 //       await fetchAllData();
@@ -884,8 +884,8 @@
 //   const handleUpdateAssignment = async (e) => {
 //     e.preventDefault();
 //     try {
-//       await axios.delete(`http://localhost:8080/delete-role-assignment`, { data: { assignment_id: assignmentFormData.assignmentId, deduct_points: true } });
-//       await axios.post(`http://localhost:8080/assignments`, { teacher_id: assignmentFormData.teacherId, role_id: assignmentFormData.roleId, event_id: eventId });
+//       await axios.delete(`https://facultypointsportal.onrender.com/delete-role-assignment`, { data: { assignment_id: assignmentFormData.assignmentId, deduct_points: true } });
+//       await axios.post(`https://facultypointsportal.onrender.com/assignments`, { teacher_id: assignmentFormData.teacherId, role_id: assignmentFormData.roleId, event_id: eventId });
 //       await fetchAllData();
 //       resetEditForm();
 //     } catch (error) { console.error("Error updating assignment:", error); alert(error.response?.data?.error || "An error occurred"); }
@@ -906,7 +906,7 @@
 //     e.preventDefault();
 //     if (!selectedFaculty || !selectedRoleId) return alert("Invalid selection.");
 //     try {
-//       await axios.post(`http://localhost:8080/assignments`, { teacher_id: selectedFaculty._id, role_id: selectedRoleId, event_id: eventId });
+//       await axios.post(`https://facultypointsportal.onrender.com/assignments`, { teacher_id: selectedFaculty._id, role_id: selectedRoleId, event_id: eventId });
 //       alert(`Assigned ${selectedFaculty.name} successfully!`);
 //       handleCloseRoleModal();
 //       await fetchAllData();
@@ -920,7 +920,7 @@
 //     if (isNaN(count) || count <= 0) return alert("Please enter a valid, positive number.");
 //     setAutoAssigningRoleId(roleId);
 //     try {
-//       const response = await axios.post(`http://localhost:8080/events/${eventId}/roles/${roleId}/auto-assign`, { count: count });
+//       const response = await axios.post(`https://facultypointsportal.onrender.com/events/${eventId}/roles/${roleId}/auto-assign`, { count: count });
 //       alert(`${response.data.message}\nAssigned: ${response.data.assigned_teachers.join(', ')}`);
 //       await fetchAllData();
 //     } catch (error) { console.error("Error auto-assigning teacher:", error); alert(error.response?.data?.error || "Failed to auto-assign teacher(s).");
@@ -936,7 +936,7 @@
 //   const handleDeleteAssignment = async (assignmentId) => {
 //     if (window.confirm("Are you sure? This will remove the assignment and deduct points.")) {
 //       try {
-//         await axios.delete(`http://localhost:8080/delete-role-assignment`, { data: { assignment_id: assignmentId, deduct_points: true } });
+//         await axios.delete(`https://facultypointsportal.onrender.com/delete-role-assignment`, { data: { assignment_id: assignmentId, deduct_points: true } });
 //         await fetchAllData();
 //       } catch (error) { console.error("Error removing assignment:", error); alert(error.response?.data?.error || "An error occurred"); }
 //     }
@@ -949,7 +949,7 @@
 //     const rolePoints = parseInt(prompt("Enter points for this role:"), 10) || 0;
 //     const headCount = parseInt(prompt("Enter max teachers for this role:"), 10) || 1;
 //     try {
-//       await axios.post(`http://localhost:8080/roles/${eventId}`, { name: roleName, description: roleDescription, point: rolePoints, head_count: headCount });
+//       await axios.post(`https://facultypointsportal.onrender.com/roles/${eventId}`, { name: roleName, description: roleDescription, point: rolePoints, head_count: headCount });
 //       await fetchAllData();
 //     } catch (error) { console.error("Error creating role:", error); alert(error.response?.data?.error || "An error occurred"); }
 //   };
@@ -968,7 +968,7 @@
 //     e.preventDefault();
 //     if (!currentAssignmentForEdit) return;
 //     try {
-//       await axios.put(`http://localhost:8080/assignments/edit/${currentAssignmentForEdit.id}`, { points: parseInt(newPoints, 10) });
+//       await axios.put(`https://facultypointsportal.onrender.com/assignments/edit/${currentAssignmentForEdit.id}`, { points: parseInt(newPoints, 10) });
 //       alert("Points updated successfully!");
 //       handleClosePointEditModal();
 //       await fetchAllData();
@@ -1188,10 +1188,10 @@ const EventDashboard = () => {
   const fetchAllData = async () => {
     try {
       const [eventRes, teachersRes, rolesRes, assignmentsRes] = await Promise.all([
-        axios.get(`http://localhost:8080/eventid/${eventId}`),
-        axios.get(`http://localhost:8080/teachers`),
-        axios.get(`http://localhost:8080/events/${eventId}/roles`),
-        axios.get(`http://localhost:8080/events/assigned-teachers/${eventId}`)
+        axios.get(`https://facultypointsportal.onrender.com/eventid/${eventId}`),
+        axios.get(`https://facultypointsportal.onrender.com/teachers`),
+        axios.get(`https://facultypointsportal.onrender.com/events/${eventId}/roles`),
+        axios.get(`https://facultypointsportal.onrender.com/events/assigned-teachers/${eventId}`)
       ]);
       setEventDetails(eventRes.data);
       setEventFormData({ name: eventRes.data.name, description: eventRes.data.description, start_date: formatDateForInput(eventRes.data.start_date), end_date: formatDateForInput(eventRes.data.end_date), start_time: formatTimeForInput(eventRes.data.start_time), end_time: formatTimeForInput(eventRes.data.end_time) });
@@ -1233,7 +1233,7 @@ const EventDashboard = () => {
   const handleUpdateEvent = async (e) => {
     e.preventDefault();
     try {
-      await axios.put(`http://localhost:8080/events/${eventId}`, eventFormData);
+      await axios.put(`https://facultypointsportal.onrender.com/events/${eventId}`, eventFormData);
       alert("Event updated successfully!");
       setIsEventEditMode(false);
       await fetchAllData();
@@ -1243,8 +1243,8 @@ const EventDashboard = () => {
   const handleUpdateAssignment = async (e) => {
     e.preventDefault();
     try {
-      await axios.delete(`http://localhost:8080/delete-role-assignment`, { data: { assignment_id: assignmentFormData.assignmentId, deduct_points: true } });
-      await axios.post(`http://localhost:8080/assignments`, { teacher_id: assignmentFormData.teacherId, role_id: assignmentFormData.roleId, event_id: eventId });
+      await axios.delete(`https://facultypointsportal.onrender.com/delete-role-assignment`, { data: { assignment_id: assignmentFormData.assignmentId, deduct_points: true } });
+      await axios.post(`https://facultypointsportal.onrender.com/assignments`, { teacher_id: assignmentFormData.teacherId, role_id: assignmentFormData.roleId, event_id: eventId });
       await fetchAllData();
       resetEditForm();
     } catch (error) { console.error("Error updating assignment:", error); alert(error.response?.data?.error || "An error occurred"); }
@@ -1265,7 +1265,7 @@ const EventDashboard = () => {
     e.preventDefault();
     if (!selectedFaculty || !selectedRoleId) return alert("Invalid selection.");
     try {
-      await axios.post(`http://localhost:8080/assignments`, { teacher_id: selectedFaculty._id, role_id: selectedRoleId, event_id: eventId });
+      await axios.post(`https://facultypointsportal.onrender.com/assignments`, { teacher_id: selectedFaculty._id, role_id: selectedRoleId, event_id: eventId });
       alert(`Assigned ${selectedFaculty.name} successfully!`);
       handleCloseRoleModal();
       await fetchAllData();
@@ -1279,7 +1279,7 @@ const EventDashboard = () => {
     if (isNaN(count) || count <= 0) return alert("Please enter a valid, positive number.");
     setAutoAssigningRoleId(roleId);
     try {
-      const response = await axios.post(`http://localhost:8080/events/${eventId}/roles/${roleId}/auto-assign`, { count: count });
+      const response = await axios.post(`https://facultypointsportal.onrender.com/events/${eventId}/roles/${roleId}/auto-assign`, { count: count });
       alert(`${response.data.message}\nAssigned: ${response.data.assigned_teachers.join(', ')}`);
       await fetchAllData();
     } catch (error) { console.error("Error auto-assigning teacher:", error); alert(error.response?.data?.error || "Failed to auto-assign teacher(s).");
@@ -1295,7 +1295,7 @@ const EventDashboard = () => {
   const handleDeleteAssignment = async (assignmentId) => {
     if (window.confirm("Are you sure? This will remove the assignment and deduct points.")) {
       try {
-        await axios.delete(`http://localhost:8080/delete-role-assignment`, { data: { assignment_id: assignmentId, deduct_points: true } });
+        await axios.delete(`https://facultypointsportal.onrender.com/delete-role-assignment`, { data: { assignment_id: assignmentId, deduct_points: true } });
         await fetchAllData();
       } catch (error) { console.error("Error removing assignment:", error); alert(error.response?.data?.error || "An error occurred"); }
     }
@@ -1308,7 +1308,7 @@ const EventDashboard = () => {
     const rolePoints = parseInt(prompt("Enter points for this role:"), 10) || 0;
     const headCount = parseInt(prompt("Enter max teachers for this role:"), 10) || 1;
     try {
-      await axios.post(`http://localhost:8080/roles/${eventId}`, { name: roleName, description: roleDescription, point: rolePoints, head_count: headCount });
+      await axios.post(`https://facultypointsportal.onrender.com/roles/${eventId}`, { name: roleName, description: roleDescription, point: rolePoints, head_count: headCount });
       await fetchAllData();
     } catch (error) { console.error("Error creating role:", error); alert(error.response?.data?.error || "An error occurred"); }
   };
@@ -1327,7 +1327,7 @@ const EventDashboard = () => {
     e.preventDefault();
     if (!currentAssignmentForEdit) return;
     try {
-      await axios.put(`http://localhost:8080/assignments/edit/${currentAssignmentForEdit.id}`, { points: parseInt(newPoints, 10) });
+      await axios.put(`https://facultypointsportal.onrender.com/assignments/edit/${currentAssignmentForEdit.id}`, { points: parseInt(newPoints, 10) });
       alert("Points updated successfully!");
       handleClosePointEditModal();
       await fetchAllData();

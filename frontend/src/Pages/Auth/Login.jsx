@@ -30,8 +30,7 @@ const Login = () => {
         const role = response.data.role; // 👈 Get role from response
         const name = response.data.name;
         const userid=response.data.user_id
-        alert(role)
-        alert(userid)
+        
         if ( !role) {
           throw new Error("Invalid login response: missing token or role");
         }

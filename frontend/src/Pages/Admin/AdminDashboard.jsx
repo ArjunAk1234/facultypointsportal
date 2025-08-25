@@ -23,7 +23,7 @@
 
 // // //   const fetchEvents = () => {
 // // //     axios
-// // //       .get("http://localhost:8080/events/current")
+// // //       .get("https://facultypointsportal.onrender.com/events/current")
 // // //       .then((res) => setEvents(res.data))
 // // //       .catch((err) => console.error("Error fetching events:", err));
 // // //   };
@@ -37,7 +37,7 @@
 // // //     e.preventDefault();
 
 // // //     axios
-// // //       .post("http://localhost:8080/events", {
+// // //       .post("https://facultypointsportal.onrender.com/events", {
 // // //         name: formData.eventName,
 // // //         description: formData.eventDescription,
 // // //         start_date: formData.startDate,
@@ -233,7 +233,7 @@
 
 // //   const fetchEvents = () => {
 // //     axios
-// //       .get("http://localhost:8080/events/current")
+// //       .get("https://facultypointsportal.onrender.com/events/current")
 // //       .then((res) => setEvents(res.data || [])) // Ensure events is always an array
 // //       .catch((err) => {
 // //         console.error("Error fetching events:", err);
@@ -250,7 +250,7 @@
 // //     e.preventDefault();
 
 // //     axios
-// //       .post("http://localhost:8080/events", {
+// //       .post("https://facultypointsportal.onrender.com/events", {
 // //         name: formData.eventName,
 // //         description: formData.eventDescription,
 // //         start_date: formData.startDate,
@@ -312,13 +312,13 @@
 // //       alert("Please select both a start and end date for the report.");
 // //       return;
 // //     }
-// //     const url = `http://localhost:8080/reports/daterange?start_date=${reportStartDate}&end_date=${reportEndDate}`;
+// //     const url = `https://facultypointsportal.onrender.com/reports/daterange?start_date=${reportStartDate}&end_date=${reportEndDate}`;
 // //     handleDownload(url, `report_${reportStartDate}_to_${reportEndDate}.csv`);
 // //   };
 
 // //   const handleEventReport = (eventId, eventName) => {
 // //     if (!eventId) return;
-// //     const url = `http://localhost:8080/reports/event/${eventId}`;
+// //     const url = `https://facultypointsportal.onrender.com/reports/event/${eventId}`;
 // //     handleDownload(url, `event_report_${eventName.replace(/\s+/g, '_')}.csv`);
 // //   };
 
@@ -536,7 +536,7 @@
 //   const fetchEvents = (tab) => {
 //     setLoading(true);
 //     // The backend provides separate endpoints for current, upcoming, and past events
-//     const endpoint = `http://localhost:8080/events/${tab}`;
+//     const endpoint = `https://facultypointsportal.onrender.com/events/${tab}`;
 //     axios
 //       .get(endpoint)
 //       .then((res) => setEvents(res.data || [])) // Ensure events is always an array
@@ -555,7 +555,7 @@
 //   const handleFormSubmit = (e) => {
 //     e.preventDefault();
 //     axios
-//       .post("http://localhost:8080/events", formData)
+//       .post("https://facultypointsportal.onrender.com/events", formData)
 //       .then(() => {
 //         setFormData({ name: "", description: "", start_date: "", end_date: "", start_time: "", end_time: "" });
 //         setShowCreateForm(false);
@@ -591,13 +591,13 @@
 //       alert("Please select both a start and end date for the report.");
 //       return;
 //     }
-//     const url = `http://localhost:8080/reports/daterange/csv?start_date=${reportStartDate}&end_date=${reportEndDate}`;
+//     const url = `https://facultypointsportal.onrender.com/reports/daterange/csv?start_date=${reportStartDate}&end_date=${reportEndDate}`;
 //     handleDownload(url, `report_${reportStartDate}_to_${reportEndDate}.csv`);
 //   };
 
 //   const handleEventReport = (eventId, eventName) => {
 //     if (!eventId) return;
-//     const url = `http://localhost:8080/reports/event/${eventId}/csv`;
+//     const url = `https://facultypointsportal.onrender.com/reports/event/${eventId}/csv`;
 //     handleDownload(url, `event_report_${eventName.replace(/\s+/g, '_')}.csv`);
 //   };
 
@@ -737,7 +737,7 @@ const AdminDashboard = () => {
 
   const fetchEvents = (tab) => {
     setLoading(true);
-    const endpoint = `http://localhost:8080/events/${tab}`;
+    const endpoint = `https://facultypointsportal.onrender.com/events/${tab}`;
     axios
       .get(endpoint)
       .then((res) => setEvents(res.data || []))
@@ -756,7 +756,7 @@ const AdminDashboard = () => {
   const handleFormSubmit = (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:8080/events", formData)
+      .post("https://facultypointsportal.onrender.com/events", formData)
       .then(() => {
         setFormData({ name: "", description: "", start_date: "", end_date: "", start_time: "", end_time: "" });
         setShowCreateForm(false);
@@ -787,7 +787,7 @@ const AdminDashboard = () => {
     uploadData.append("excel_file", excelFile);
 
     axios
-      .post("http://localhost:8080/events/create-from-excel", uploadData, {
+      .post("https://facultypointsportal.onrender.com/events/create-from-excel", uploadData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -863,13 +863,13 @@ const AdminDashboard = () => {
       alert("Please select both a start and end date for the report.");
       return;
     }
-    const url = `http://localhost:8080/reports/daterange?start_date=${reportStartDate}&end_date=${reportEndDate}`;
+    const url = `https://facultypointsportal.onrender.com/reports/daterange?start_date=${reportStartDate}&end_date=${reportEndDate}`;
     handleDownload(url, `report_${reportStartDate}_to_${reportEndDate}.csv`);
   };
 
   const handleEventReport = (eventId, eventName) => {
     if (!eventId) return;
-    const url = `http://localhost:8080/reports/event/${eventId}`;
+    const url = `https://facultypointsportal.onrender.com/reports/event/${eventId}`;
     handleDownload(url, `event_report_${eventName.replace(/\s+/g, "_")}.csv`);
   };
 

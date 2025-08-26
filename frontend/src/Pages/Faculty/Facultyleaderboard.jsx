@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 // Replace with the actual URL of your Go backend
-const API_BASE_URL = 'http://localhost:8080';
+const API_BASE_URL = 'https://facultypointsportal.onrender.com';
 
 const LeaderboardPage = () => {
   const [leaderboard, setLeaderboard] = useState([]);

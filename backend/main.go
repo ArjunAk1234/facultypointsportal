@@ -51,6 +51,7 @@ func main() {
 
 	// Assignment routes
 	r.POST("/assignments", AssignTeacherToRole)
+	r.GET("/assignments", GetAllAssignments)
 
 	r.DELETE("/delete-role-assignment", DeleteRoleAssignment)
 
@@ -95,5 +96,5 @@ func main() {
 	r.POST("/events/create-from-excel", CreateEventFromExcel)
 	// In your main function where you define routes...
 	r.POST("/events/:eventid/roles/:roleid/auto-assign", AutoAssignLowestPointTeacherToRole)
-	r.Run(":"+ port)
+	r.Run(":" + port)
 }

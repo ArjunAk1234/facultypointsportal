@@ -378,6 +378,63 @@ func CreateRole(c *gin.Context) {
 // 	c.JSON(http.StatusOK, teacher)
 // }
 
+// func CreateTeacher(c *gin.Context) {
+// 	var teacher Teacher
+// 	if err := c.ShouldBindJSON(&teacher); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	// --- START: Corrected Validation ---
+// 	// Check if the Departmentname field is empty.
+// 	if teacher.Departmentname == "" { // Changed from teacher.Department
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Departmentname field is required"})
+// 		return
+// 	}
+// 	// --- END: Corrected Validation ---
+
+// 	// Initialize points to 0 for a new teacher
+// 	teacher.Point = 0
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+
+// 	userCollectionRef := db.Collection(userCollection)
+// 	var existingUser User
+
+// 	// Check if a user with this email already exists
+// 	err := userCollectionRef.FindOne(ctx, bson.M{"email": teacher.Email}).Decode(&existingUser)
+// 	if err == nil {
+// 		// User exists, use their ID for the new teacher
+// 		teacher.ID = existingUser.ID
+// 		teacher.UserID = existingUser.ID
+// 	} else if err == mongo.ErrNoDocuments {
+// 		// User does not exist, create a new ID for the teacher
+// 		teacher.ID = primitive.NewObjectID()
+// 		teacher.UserID = teacher.ID
+// 	} else {
+// 		// Handle other potential errors from FindOne
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking for existing user: " + err.Error()})
+// 		return
+// 	}
+
+// 	collection := db.Collection(teacherCollection)
+// 	_, err = collection.InsertOne(ctx, teacher)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create teacher: " + err.Error()})
+// 		return
+// 	}
+
+// 	filter := bson.M{"email": teacher.Email}
+// 	update := bson.M{"$set": bson.M{"user_id": teacher.ID, "_id": teacher.ID}}
+// 	opts := options.Update().SetUpsert(true)
+// 	_, err = userCollectionRef.UpdateOne(ctx, filter, update, opts)
+// 	if err != nil {
+// 		fmt.Printf("Warning: Failed to upsert user for teacher %s: %v\n", teacher.Email, err)
+// 	}
+
+//		c.JSON(http.StatusOK, teacher)
+//	}
 func CreateTeacher(c *gin.Context) {
 	var teacher Teacher
 	if err := c.ShouldBindJSON(&teacher); err != nil {
@@ -385,52 +442,43 @@ func CreateTeacher(c *gin.Context) {
 		return
 	}
 
-	// --- START: Corrected Validation ---
-	// Check if the Departmentname field is empty.
-	if teacher.Departmentname == "" { // Changed from teacher.Department
+	// Validate that the Departmentname field is not empty.
+	if teacher.Departmentname == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Departmentname field is required"})
 		return
 	}
-	// --- END: Corrected Validation ---
 
-	// Initialize points to 0 for a new teacher
+	// Initialize points to 0 for a new teacher.
 	teacher.Point = 0
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	userCollectionRef := db.Collection(userCollection)
+	userCollection := db.Collection(userCollection)
 	var existingUser User
 
-	// Check if a user with this email already exists
-	err := userCollectionRef.FindOne(ctx, bson.M{"email": teacher.Email}).Decode(&existingUser)
+	// Check if a user with the provided email already exists in the user database.
+	err := userCollection.FindOne(ctx, bson.M{"email": teacher.Email}).Decode(&existingUser)
 	if err == nil {
-		// User exists, use their ID for the new teacher
+		// If the user exists, use their ID for the new teacher's ID and UserID.
 		teacher.ID = existingUser.ID
 		teacher.UserID = existingUser.ID
 	} else if err == mongo.ErrNoDocuments {
-		// User does not exist, create a new ID for the teacher
+		// If the user does not exist, create a new ID for the teacher.
+		// A new user will not be created in the user database.
 		teacher.ID = primitive.NewObjectID()
 		teacher.UserID = teacher.ID
 	} else {
-		// Handle other potential errors from FindOne
+		// Handle other potential errors from FindOne.
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking for existing user: " + err.Error()})
 		return
 	}
 
-	collection := db.Collection(teacherCollection)
-	_, err = collection.InsertOne(ctx, teacher)
+	teacherCollection := db.Collection(teacherCollection)
+	_, err = teacherCollection.InsertOne(ctx, teacher)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create teacher: " + err.Error()})
 		return
-	}
-
-	filter := bson.M{"email": teacher.Email}
-	update := bson.M{"$set": bson.M{"user_id": teacher.ID, "_id": teacher.ID}}
-	opts := options.Update().SetUpsert(true)
-	_, err = userCollectionRef.UpdateOne(ctx, filter, update, opts)
-	if err != nil {
-		fmt.Printf("Warning: Failed to upsert user for teacher %s: %v\n", teacher.Email, err)
 	}
 
 	c.JSON(http.StatusOK, teacher)
@@ -2346,4 +2394,96 @@ func AutoAssignLowestPointTeacherToRole(c *gin.Context) {
 		"assigned_count":    len(successfulAssignments),
 		"assigned_teachers": successfulAssignments,
 	})
+}
+
+// func GetAllAssignments(c *gin.Context) {
+// 	// Set a timeout for the database operation to prevent it from running indefinitely.
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+
+// 	// Access the collection for teacher assignments.
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+
+// 	// An empty bson.M{} filter will match all documents in the collection. [1, 2]
+// 	cursor, err := assignmentCollection.Find(ctx, bson.M{})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch assignments from the database"})
+// 		return
+// 	}
+// 	defer cursor.Close(ctx)
+
+// 	// A slice to hold the results.
+// 	var assignments []Assignment
+
+// 	// Decode all documents found by the cursor into the 'assignments' slice. [2]
+// 	if err := cursor.All(ctx, &assignments); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode assignments"})
+// 		return
+// 	}
+
+// 	// If no assignments are found, return an empty array instead of null for JSON compatibility.
+// 	if assignments == nil {
+// 		assignments = []Assignment{}
+// 	}
+
+// 	// Return the slice of assignments with a 200 OK status.
+// 	c.JSON(http.StatusOK, assignments)
+// }
+// In your main.go file, replace the existing GetAllAssignments function with this one.
+
+// GetAllAssignments now joins role data to include the default role points.
+func GetAllAssignments(c *gin.Context) {
+	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+	defer cancel()
+
+	assignmentCollection := db.Collection(teacherAssignmentCollection)
+
+	pipeline := mongo.Pipeline{
+		{{"$lookup", bson.M{
+			"from":         roleCollection,
+			"localField":   "role_id",
+			"foreignField": "_id",
+			"as":           "roleDetails",
+		}}},
+		{{"$unwind", bson.M{
+			"path":                       "$roleDetails",
+			"preserveNullAndEmptyArrays": true,
+		}}},
+		{{"$project", bson.M{
+			"_id":           1,
+			"assignment_id": 1,
+			"event_id":      1,
+			"eventname":     1,
+			"teacher_id":    1,
+			"role_id":       1,
+			"rolename":      1,
+			"teachername":   1,
+			"teacheremail":  1,
+			"points_awarded": bson.M{
+				"$ifNull": []interface{}{
+					"$points_awarded",
+					"$roleDetails.point",
+				},
+			},
+		}}},
+	}
+
+	cursor, err := assignmentCollection.Aggregate(ctx, pipeline)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch and process assignments"})
+		return
+	}
+	defer cursor.Close(ctx)
+
+	var assignmentsWithPoints []Assignment
+	if err := cursor.All(ctx, &assignmentsWithPoints); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to decode assignments"})
+		return
+	}
+
+	if assignmentsWithPoints == nil {
+		assignmentsWithPoints = []Assignment{}
+	}
+
+	c.JSON(http.StatusOK, assignmentsWithPoints)
 }

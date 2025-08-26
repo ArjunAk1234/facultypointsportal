@@ -1,103 +1,3 @@
-// // // Sidebar.jsx
-// // import React from "react";
-// // import { Home, History } from "lucide-react";
-// // import { useNavigate } from "react-router-dom";
-
-// // const Sidebar = () => {
-// //   const navigate = useNavigate();
-
-// //   const menuItems = [
-// //     { icon: <Home size={20} />, label: "Home", path: "/faculty" },
-// //     { icon: <History size={20} />, label: "Past Events", path: "/faculty/event-historyfaculty" },
-// //   ];
-
-// //   return (
-// //     <div className="w-64 h-screen bg-gray-900 text-white flex flex-col p-4">
-// //       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-// //       <nav className="space-y-2">
-// //         {menuItems.map((item, index) => (
-// //           <button
-// //             key={index}
-// //             onClick={() => navigate(item.path)}
-// //             className="flex items-center space-x-3 p-2 rounded-xl hover:bg-gray-700 w-full text-left"
-// //           >
-// //             {item.icon}
-// //             <span>{item.label}</span>
-// //           </button>
-// //         ))}
-// //       </nav>
-// //     </div>
-// //   );
-// // };
-
-// // export default Sidebar;
-// import React, { useState } from "react";
-// import { Home, History, ChevronsLeft, ChevronsRight } from "lucide-react";
-// import { useNavigate } from "react-router-dom";
-
-// const Sidebar = () => {
-//   const navigate = useNavigate();
-//   const [isCollapsed, setIsCollapsed] = useState(false);
-
-//   const menuItems = [
-//     { icon: <Home size={20} />, label: "Home", path: "/faculty" },
-//     { icon: <History size={20} />, label: "Past Events", path: "/faculty/event-historyfaculty" },
-//   ];
-
-//   const handleToggle = () => {
-//     setIsCollapsed(!isCollapsed);
-//   };
-
-//   return (
-//     <div
-//       className={`h-screen text-white bg-gray-900 flex flex-col transition-all duration-300 ease-in-out ${
-//         isCollapsed ? "w-20" : "w-64"
-//       }`}
-//     >
-//       {/* Header with Title and Toggle Button */}
-//       <div className="flex items-center justify-between p-4 border-b border-gray-700">
-//         <h1
-//           className={`text-2xl font-bold whitespace-nowrap overflow-hidden transition-opacity duration-300 ${
-//             isCollapsed ? "opacity-0" : "opacity-100"
-//           }`}
-//         >
-//           Dashboard
-//         </h1>
-//         <button
-//           onClick={handleToggle}
-//           className="p-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
-//         >
-//           {isCollapsed ? <ChevronsRight size={24} /> : <ChevronsLeft size={24} />}
-//         </button>
-//       </div>
-
-//       {/* Navigation Menu */}
-//       <nav className="flex-1 p-4 space-y-2">
-//         {menuItems.map((item, index) => (
-//           <button
-//             key={index}
-//             onClick={() => navigate(item.path)}
-//             className={`flex items-center w-full p-3 rounded-xl hover:bg-gray-700 text-left transition-all duration-300 ${
-//               isCollapsed ? "justify-center" : ""
-//             }`}
-//             title={isCollapsed ? item.label : ""}
-//           >
-//             {item.icon}
-//             <span
-//               className={`ml-4 whitespace-nowrap transition-all duration-300 ${
-//                 isCollapsed ? "opacity-0 w-0" : "opacity-100"
-//               }`}
-//             >
-//               {item.label}
-//             </span>
-//           </button>
-//         ))}
-//       </nav>
-//     </div>
-//   );
-// };
-
-// export default Sidebar;
 
 import React, { useState, useEffect } from "react";
 import { Home, History, Users, LogOut, ChevronFirst, ChevronLast } from "lucide-react";
@@ -139,7 +39,8 @@ const Sidebar = () => {
   // ];
   const menuItems = [
     { icon: <Home size={20} />, label: "Home", path: "/faculty" },
-    { icon: <History size={20} />, label: "Past Events", path: "/faculty/event-historyfaculty" },
+    { icon: <History size={20} />, label: "Events", path: "/faculty/event-historyfaculty" },
+    { icon: <History size={20} />, label: "leaderboard", path: "/faculty/facultyleaderboard" }
   ];
 
   const handleLogout = () => {

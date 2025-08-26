@@ -1,988 +1,473 @@
+import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
 
-// import React, { useEffect, useState } from 'react';
-
-// const TeacherDashboard = () => {
-//   const [leaderboard, setLeaderboard] = useState([]);
-//   const [currentEvents, setCurrentEvents] = useState([]);
-//   const [teacherAssignments, setTeacherAssignments] = useState([]);
-//   const [selectedEvent, setSelectedEvent] = useState(null);
-//   const [allAssignmentsForSelectedEvent, setAllAssignmentsForSelectedEvent] = useState([]);
-//   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-//   const [currentTeacherId, setCurrentTeacherId] = useState(null);
-//   const [userName, setUserName] = useState('');
-
-//   // Leaderboard Pagination State
-//   const [leaderboardPage, setLeaderboardPage] = useState(1);
-//   const itemsPerPage = 10;
+// --- CONFIGURATION ---
+// Replace this with the actual base URL of your Go backend API
+const API_BASE_URL = 'https://facultypointsportal.onrender.com';
 
 
-//   // Notification states
-//   const [notifications, setNotifications] = useState([]);
-//   const [showNotifications, setShowNotifications] = useState(false);
-//   const [notificationCount, setNotificationCount] = useState({ total_count: 0, unread_count: 0 });
-//   const [notificationLoading, setNotificationLoading] = useState(false);
-//   const [showUnreadOnly, setShowUnreadOnly] = useState(false);
+// --- HELPER COMPONENTS ---
 
-//   useEffect(() => {
-//     const fetchData = async () => {
-//       try {
-//         const user = JSON.parse(localStorage.getItem("user"));
-//         const teacherId = user?.userid; 
-//         const name = user?.name;
-
-//         if (!teacherId) {
-//           setError('Teacher ID not found in local storage. Please login again.');
-//           setLoading(false);
-//           return;
-//         }
-
-//         setCurrentTeacherId(teacherId);
-//         setUserName(name);
-
-//         const [dashboardRes, assignmentsRes] = await Promise.all([
-//           fetch('https://facultypointsportal.onrender.com/dashboard/faculty').then(res => res.json()),
-//           fetch(`https://facultypointsportal.onrender.com/teacher-assignments/${teacherId}`).then(res => res.json())
-//         ]);
-
-//         setLeaderboard(dashboardRes.leaderboard || []);
-//         setCurrentEvents(dashboardRes.current_events || []);
-//         setTeacherAssignments(assignmentsRes || []);
-
-//         await fetchNotificationCount(teacherId);
-
-//         setLoading(false);
-//       } catch (err) {
-//         console.error('Error fetching data:', err);
-//         setError('Failed to fetch data. Please try again later.');
-//         setLoading(false);
-//       }
-//     };
-
-//     fetchData();
-//   }, []);
-
-//   const fetchNotificationCount = async (teacherId) => {
-//     try {
-//       const response = await fetch(`https://facultypointsportal.onrender.com/teachers/${teacherId}/notifications/count`);
-//       const data = await response.json();
-//       setNotificationCount(data);
-//     } catch (err)     { console.error('Error fetching notification count:', err);
-//     }
-//   };
-
-//   const fetchNotifications = async (showAll = true) => {
-//     if (!currentTeacherId) return;
-
-//     setNotificationLoading(true);
-//     try {
-//       const response = await fetch(
-//         `https://facultypointsportal.onrender.com/teachers/${currentTeacherId}/notifications?show_read=${showAll}`
-//       );
-//       const data = await response.json();
-//       setNotifications(Array.isArray(data) ? data : []);
-//     } catch (err) {
-//       console.error('Error fetching notifications:', err);
-//       setNotifications([]);
-//     }
-//     setNotificationLoading(false);
-//   };
-
-//   const markAsRead = async (notificationId) => {
-//     try {
-//       await fetch(`https://facultypointsportal.onrender.com/notifications/${notificationId}/read`, {
-//         method: 'PUT'
-//       });
-
-//       setNotifications(notifications.map(notif =>
-//         notif.id === notificationId 
-//           ? { ...notif, is_read: true }
-//           : notif
-//       ));
-
-//       await fetchNotificationCount(currentTeacherId);
-//     } catch (err) {
-//       console.error('Error marking notification as read:', err);
-//     }
-//   };
-
-//   const deleteNotification = async (notificationId) => {
-//     try {
-//       await fetch(`https://facultypointsportal.onrender.com/notifications/${notificationId}`, {
-//         method: 'DELETE'
-//       });
-
-//       setNotifications(notifications.filter(notif => notif.id !== notificationId)); 
-//       await fetchNotificationCount(currentTeacherId);
-//     } catch (err) {
-//       console.error('Error deleting notification:', err);
-//     }
-//   };
-
-//   const markAllAsRead = async () => {
-//     if (!currentTeacherId) return;
-
-//     try {
-//       await fetch(`https://facultypointsportal.onrender.com/teachers/${currentTeacherId}/notifications/read-all`, {
-//         method: 'PUT'
-//       });
-
-//       setNotifications(notifications.map(notif => ({
-//         ...notif,
-//         is_read: true,
-//       })));
-      
-//       await fetchNotificationCount(currentTeacherId);
-
-//     } catch (err) {
-//       console.error('Error marking all notifications as read:', err);
-//     }
-//   };
-
-//   const handleNotificationClick = async () => {
-//     const willShow = !showNotifications;
-//     setShowNotifications(willShow);
-//     if (willShow) {
-//       await fetchNotifications(!showUnreadOnly);
-//     }
-//   };
-  
-//   const handleFilterChange = async (unreadOnly) => {
-//     setShowUnreadOnly(unreadOnly);
-//     await fetchNotifications(!unreadOnly); 
-//   };
-
-//   const formatDate = (dateString) => {
-//     const date = new Date(dateString);
-//     const now = new Date();
-//     const diffInHours = (now - date) / (1000 * 60 * 60);
-
-//     if (diffInHours < 1) {
-//       return 'Just now';
-//     } else if (diffInHours < 24) {
-//       return `${Math.floor(diffInHours)}h ago`;
-//     } else if (diffInHours < 48) {
-//       return 'Yesterday';
-//     } else {
-//       return date.toLocaleDateString();
-//     }
-//   };
-
-//   const handleEventClick = async (event) => {
-//     setSelectedEvent(event);
-//     try {
-//       const response = await fetch(`https://facultypointsportal.onrender.com/events/assigned-teachers/${event.event_id}`);
-//       if (!response.ok) {
-//         throw new Error('Failed to fetch assigned teachers');
-//       }
-//       const data = await response.json();
-//       setAllAssignmentsForSelectedEvent(data || []);
-//     } catch (err) {
-//       console.error('Error fetching assigned teachers:', err);
-//     }
-//   };
-
-//   const getTeacherAssignmentsForEvent = (eventId) => {
-//     return teacherAssignments.filter(assignment => assignment.event_id === eventId);
-//   };
-
-//   // =================================================================
-//   // S T A R T   O F   F I X
-//   // =================================================================
-//   const renderLeaderboard = () => {
-//     const totalPages = Math.ceil(leaderboard.length / itemsPerPage);
-//     const paginatedLeaderboard = leaderboard.slice(
-//       (leaderboardPage - 1) * itemsPerPage,
-//       leaderboardPage * itemsPerPage
-//     );
-  
-//     return (
-//       <div className="mb-12">
-//         <div className="flex items-center mb-6">
-//           <div className="w-1 h-8 bg-gradient-to-b from-yellow-400 to-orange-500 rounded-full mr-4"></div>
-//           <h2 className="text-3xl font-bold text-gray-800">Leaderboard</h2>
-//         </div>
-//         <div className="bg-white p-6 rounded-2xl shadow-lg">
-//           <ul className="space-y-4">
-//             {paginatedLeaderboard.map((teacher, index) => (
-//               <li key={teacher.user_id || index} className="flex items-center justify-between p-3 rounded-lg transition-colors hover:bg-gray-50">
-//                 <div className="flex items-center">
-//                   <span className={`text-lg font-bold w-8 text-center ${index < 3 && leaderboardPage === 1 ? 'text-orange-500' : 'text-gray-500'}`}>
-//                     {(leaderboardPage - 1) * itemsPerPage + index + 1}
-//                   </span>
-//                   <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm ml-4">
-//                     {/* THE FIX IS HERE: Check if teacher.name is a valid string before calling charAt */}
-//                     {(teacher.name && typeof teacher.name === 'string') ? teacher.name.charAt(0).toUpperCase() : '?'}
-//                   </div>
-//                   <span className="ml-4 font-medium text-gray-700">{teacher.teacher_name || 'Unknown User'}</span>
-//                 </div>
-//                 <span className="font-bold text-lg text-green-600">{teacher.points || 0} pts</span>
-//               </li>
-//             ))}
-//           </ul>
-//           {totalPages > 1 && (
-//             <div className="mt-6 flex justify-between items-center">
-//               <button
-//                 onClick={() => setLeaderboardPage(prev => Math.max(prev - 1, 1))}
-//                 disabled={leaderboardPage === 1}
-//                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-//               >
-//                 Previous
-//               </button>
-//               <span className="text-sm text-gray-600">
-//                 Page {leaderboardPage} of {totalPages}
-//               </span>
-//               <button
-//                 onClick={() => setLeaderboardPage(prev => Math.min(prev + 1, totalPages))}
-//                 disabled={leaderboardPage === totalPages}
-//                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-//               >
-//                 Next
-//               </button>
-//             </div>
-//           )}
-//         </div>
-//       </div>
-//     );
-//   };
-//   // =================================================================
-//   // E N D   O F   F I X
-//   // =================================================================
-  
-//   const renderEventList = (events, title, titleColor = "text-gray-800") => (
-//     <div className="mb-12">
-//       <div className="flex items-center mb-6">
-//         <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full mr-4"></div>
-//         <h2 className={`text-3xl font-bold ${titleColor}`}>{title}</h2>
-//       </div>
-//       {events.length === 0 ? (
-//         <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-//           <p className="text-gray-500 text-lg">No {title.toLowerCase()} found.</p>
-//         </div>
-//       ) : (
-//         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-//           {events.map((event) => {
-//             const isAssigned = teacherAssignments.some(a => a.event_id === event.event_id);
-            
-//             return (
-//               <div 
-//                 key={event.event_id}
-//                 className={`relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 ${
-//                   isAssigned 
-//                     ? "bg-gradient-to-br from-blue-50 to-indigo-100 border-2 border-blue-200" 
-//                     : "bg-white border border-gray-200 hover:border-gray-300"
-//                 }`}
-//                 onClick={() => handleEventClick(event)}
-//               >
-//                 <div className="p-6">
-//                   <h3 className="text-xl font-bold text-gray-800 line-clamp-2 pr-2 mb-3">{event.name}</h3>
-//                   <p className="text-gray-600 text-sm line-clamp-3 mb-4 leading-relaxed">{event.description}</p>
-                  
-//                   <div className="space-y-2 text-sm">
-//                     <div className="flex items-center text-gray-500">
-//                       <span>Starts: {event.start_date} {event.start_time}</span>
-//                     </div>
-//                     <div className="flex items-center text-gray-500">
-//                       <span>Ends: {event.end_date} {event.end_time}</span>
-//                     </div>
-//                   </div>
-                  
-//                   {isAssigned && (
-//                     <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-//                       Assigned to you
-//                     </div>
-//                   )}
-//                 </div>
-//               </div>
-//             );
-//           })}
-//         </div>
-//       )}
-//     </div>
-//   );
-
-//   if (loading) {
-//     return (
-//       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex justify-center items-center">
-//         <div className="text-center">
-//           <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mx-auto mb-4"></div>
-//           <p className="text-gray-600 text-lg">Loading your dashboard...</p>
-//         </div>
-//       </div>
-//     );
-//   }
-
-//   if (error) {
-//     return (
-//       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex justify-center items-center p-4">
-//         <p className="text-red-700 font-medium">{error}</p>
-//       </div>
-//     );
-//   }
-
-//   const assignedCurrentEvents = currentEvents.filter(event => 
-//     teacherAssignments.some(a => a.event_id === event.event_id)
-//   );
-
-//   return (
-//     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-//        <div className="fixed top-6 right-6 z-50">
-//         <div className="relative">
-//           <button
-//             onClick={handleNotificationClick}
-//             className="bg-white hover:bg-gray-50 border border-gray-300 rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200"
-//           >
-//             <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-//             {notificationCount.unread_count > 0 && (
-//               <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
-//                 {notificationCount.unread_count > 99 ? '99+' : notificationCount.unread_count}
-//               </span>
-//             )}
-//           </button>
-//         </div>
-
-//         {showNotifications && (
-//           <div className="absolute top-16 right-0 w-96 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 max-h-[32rem] overflow-hidden flex flex-col">
-//             <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-//                <div className="flex items-center justify-between">
-//                 <h3 className="text-lg font-semibold">Notifications</h3>
-//                 <button onClick={() => setShowNotifications(false)} className="hover:text-gray-200">
-//                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-//                 </button>
-//               </div>
-//               <div className="flex items-center justify-between mt-2 text-sm">
-//                 <span>{notificationCount.unread_count} unread of {notificationCount.total_count} total</span>
-//                 {notificationCount.unread_count > 0 && (
-//                   <button onClick={markAllAsRead} className="hover:text-white underline">
-//                     Mark all read
-//                   </button>
-//                 )}
-//               </div>
-//             </div>
-
-//             <div className="p-3 bg-gray-50 border-b border-gray-200">
-//                 <div className="flex space-x-2">
-//                     <button onClick={() => handleFilterChange(true)} className={`px-3 py-1 text-sm rounded-full transition-colors ${!showUnreadOnly ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>All</button>
-//                     <button onClick={() => handleFilterChange(false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${showUnreadOnly ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Unread</button>
-//                 </div>
-//             </div>
-
-//             <div className="flex-1 overflow-y-auto">
-//               {notificationLoading ? (
-//                 <div className="p-6 text-center"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div></div>
-//               ) : notifications.length === 0 ? (
-//                 <div className="p-6 text-center text-gray-500"><p>No notifications found</p></div>
-//               ) : (
-//                 notifications.map((notification) => (
-//                   <div key={notification.id} className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${!notification.is_read ? 'bg-blue-50' : ''}`}>
-//                       <h4 className="text-sm font-medium text-gray-900">{notification.title}</h4>
-//                       <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
-//                       <div className="flex items-center justify-between">
-//                           <span className="text-xs text-gray-400">{formatDate(notification.created_at)}</span>
-//                           <div className="flex space-x-2">
-//                               {!notification.is_read && <button onClick={() => markAsRead(notification.id)} className="text-xs text-blue-600 hover:text-blue-800">Mark read</button>}
-//                               <button onClick={() => deleteNotification(notification.id)} className="text-xs text-red-600 hover:text-red-800">Delete</button>
-//                           </div>
-//                       </div>
-//                   </div>
-//                 ))
-//               )}
-//             </div>
-//           </div>
-//         )}
-//       </div>
-
-//       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-//         {selectedEvent ? (
-//           <div className="mb-8">
-//             <button 
-//               className="mb-6 group flex items-center px-6 py-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-//               onClick={() => setSelectedEvent(null)}
-//             >
-//               Back to Events
-//             </button>
-            
-//             <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
-//               <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
-//                 <h2 className="text-3xl font-bold text-white mb-2">{selectedEvent.name}</h2>
-//                 <p className="text-blue-100 text-lg opacity-90">{selectedEvent.description}</p>
-//               </div>
-//               <div className="p-8">
-//                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-//                   <div className="bg-gray-50 rounded-xl p-6">
-//                     <h3 className="font-bold text-gray-800 text-lg mb-4">Event Duration</h3>
-//                     <p>From: {selectedEvent.start_date} {selectedEvent.start_time}</p>
-//                     <p>To: {selectedEvent.end_date} {selectedEvent.end_time}</p>
-//                   </div>
-//                 </div>
-
-//                 <div>
-//                   <h3 className="font-bold text-gray-800 text-lg mb-4">All Assigned Faculty</h3>
-//                   <div className="bg-gray-50 rounded-xl overflow-hidden">
-//                      <table className="min-w-full divide-y divide-gray-200">
-//                         <thead className="bg-gray-100">
-//                           <tr>
-//                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Teacher</th>
-//                             <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
-//                           </tr>
-//                         </thead>
-//                         <tbody className="bg-white divide-y divide-gray-200">
-//                           {allAssignmentsForSelectedEvent.map(assignment => (
-//                             <tr key={assignment.assignment_id}>
-//                               <td className="px-6 py-4 whitespace-nowrap">{assignment.teachername}</td>
-//                               <td className="px-6 py-4 whitespace-nowrap">{assignment.rolename}</td>
-//                             </tr>
-//                           ))}
-//                         </tbody>
-//                       </table>
-//                   </div>
-//                 </div>
-                
-//                 {getTeacherAssignmentsForEvent(selectedEvent.event_id).length > 0 && (
-//                   <div className="mt-8">
-//                     <h3 className="font-bold text-gray-800 text-lg mb-4">Your Assignments</h3>
-//                     <div className="bg-gray-50 rounded-xl overflow-hidden">
-//                        <table className="min-w-full divide-y divide-gray-200">
-//                           <thead className="bg-gray-100">
-//                             <tr>
-//                               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
-//                               <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Event</th>
-//                             </tr>
-//                           </thead>
-//                           <tbody className="bg-white divide-y divide-gray-200">
-//                             {getTeacherAssignmentsForEvent(selectedEvent.event_id).map(assignment => (
-//                               <tr key={assignment.assignment_id}>
-//                                 <td className="px-6 py-4 whitespace-nowrap">{assignment.rolename}</td>
-//                                 <td className="px-6 py-4 whitespace-nowrap">{assignment.eventname}</td>
-//                               </tr>
-//                             ))}
-//                           </tbody>
-//                         </table>
-//                     </div>
-//                   </div>
-//                 )}
-//               </div>
-//             </div>
-//           </div>
-//         ) : (
-//           <>
-//             <div className="text-center mb-12">
-//               <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-//                 Faculty Dashboard
-//               </h1>
-//               <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-//                 Welcome, {userName}! Here's an overview of points and events.
-//               </p>
-//             </div>
-//             {renderLeaderboard()}
-//             {renderEventList(assignedCurrentEvents, "My Assigned Events", "text-blue-700")}
-//             {renderEventList(currentEvents, "All Current Events", "text-green-700")}
-//           </>
-//         )}
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default TeacherDashboard;
-
-import React, { useEffect, useState } from 'react';
-
-const TeacherDashboard = () => {
-  const [leaderboard, setLeaderboard] = useState([]);
-  const [currentEvents, setCurrentEvents] = useState([]);
-  const [teacherAssignments, setTeacherAssignments] = useState([]);
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [allAssignmentsForSelectedEvent, setAllAssignmentsForSelectedEvent] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currentTeacherId, setCurrentTeacherId] = useState(null);
-  const [userName, setUserName] = useState('');
-
-  // Leaderboard Pagination State
-  const [leaderboardPage, setLeaderboardPage] = useState(1);
-  const itemsPerPage = 10;
-
-
-  // Notification states
-  const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [notificationCount, setNotificationCount] = useState({ total_count: 0, unread_count: 0 });
-  const [notificationLoading, setNotificationLoading] = useState(false);
-  const [showUnreadOnly, setShowUnreadOnly] = useState(false);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
-        // Corrected: use user_id as per the Go struct
-        const teacherId = user?.userid; 
-        const name = user?.name;
-
-        if (!teacherId) {
-          setError('Teacher ID not found in local storage. Please login again.');
-          setLoading(false);
-          return;
-        }
-
-        setCurrentTeacherId(teacherId);
-        setUserName(name);
-
-        const [dashboardRes, assignmentsRes] = await Promise.all([
-          fetch('https://facultypointsportal.onrender.com/dashboard/faculty').then(res => res.json()),
-          fetch(`https://facultypointsportal.onrender.com/teacher-assignments/${teacherId}`).then(res => res.json())
-        ]);
-
-        setLeaderboard(dashboardRes.leaderboard || []);
-        setCurrentEvents(dashboardRes.current_events || []);
-        setTeacherAssignments(assignmentsRes || []);
-
-        await fetchNotificationCount(teacherId);
-
-        setLoading(false);
-      } catch (err) {
-        console.error('Error fetching data:', err);
-        setError('Failed to fetch data. Please try again later.');
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, []);
-
-  const fetchNotificationCount = async (teacherId) => {
-    try {
-      const response = await fetch(`https://facultypointsportal.onrender.com/teachers/${teacherId}/notifications/count`);
-      const data = await response.json();
-      setNotificationCount(data);
-    } catch (err)     { console.error('Error fetching notification count:', err);
+/**
+ * A reusable pagination component for navigating through pages.
+ */
+const Pagination = ({ currentPage, totalPages, onPageChange }) => {
+    if (totalPages <= 1) {
+        return null; // Don't render pagination if there's only one page
     }
-  };
 
-  const fetchNotifications = async (showAll = true) => {
-    if (!currentTeacherId) return;
-
-    setNotificationLoading(true);
-    try {
-      const response = await fetch(
-        `https://facultypointsportal.onrender.com/teachers/${currentTeacherId}/notifications?show_read=${showAll}`
-      );
-      const data = await response.json();
-      setNotifications(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Error fetching notifications:', err);
-      setNotifications([]);
-    }
-    setNotificationLoading(false);
-  };
-
-  const markAsRead = async (notificationId) => {
-    try {
-      await fetch(`https://facultypointsportal.onrender.com/notifications/${notificationId}/read`, {
-        method: 'PUT'
-      });
-
-      setNotifications(notifications.map(notif =>
-        notif.id === notificationId 
-          ? { ...notif, is_read: true }
-          : notif
-      ));
-
-      await fetchNotificationCount(currentTeacherId);
-    } catch (err) {
-      console.error('Error marking notification as read:', err);
-    }
-  };
-
-  const deleteNotification = async (notificationId) => {
-    try {
-      await fetch(`https://facultypointsportal.onrender.com/notifications/${notificationId}`, {
-        method: 'DELETE'
-      });
-
-      setNotifications(notifications.filter(notif => notif.id !== notificationId)); 
-      await fetchNotificationCount(currentTeacherId);
-    } catch (err) {
-      console.error('Error deleting notification:', err);
-    }
-  };
-
-  const markAllAsRead = async () => {
-    if (!currentTeacherId) return;
-
-    try {
-      await fetch(`https://facultypointsportal.onrender.com/teachers/${currentTeacherId}/notifications/read-all`, {
-        method: 'PUT'
-      });
-
-      setNotifications(notifications.map(notif => ({
-        ...notif,
-        is_read: true,
-      })));
-      
-      await fetchNotificationCount(currentTeacherId);
-
-    } catch (err) {
-      console.error('Error marking all notifications as read:', err);
-    }
-  };
-
-  const handleNotificationClick = async () => {
-    const willShow = !showNotifications;
-    setShowNotifications(willShow);
-    if (willShow) {
-      await fetchNotifications(!showUnreadOnly);
-    }
-  };
-  
-  const handleFilterChange = async (unreadOnly) => {
-    setShowUnreadOnly(unreadOnly);
-    await fetchNotifications(!unreadOnly); 
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffInHours = (now - date) / (1000 * 60 * 60);
-
-    if (diffInHours < 1) {
-      return 'Just now';
-    } else if (diffInHours < 24) {
-      return `${Math.floor(diffInHours)}h ago`;
-    } else if (diffInHours < 48) {
-      return 'Yesterday';
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
-  const handleEventClick = async (event) => {
-    setSelectedEvent(event);
-    try {
-      const response = await fetch(`https://facultypointsportal.onrender.com/events/assigned-teachers/${event.event_id}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch assigned teachers');
-      }
-      const data = await response.json();
-      setAllAssignmentsForSelectedEvent(data || []);
-    } catch (err) {
-      console.error('Error fetching assigned teachers:', err);
-    }
-  };
-
-  const getTeacherAssignmentsForEvent = (eventId) => {
-    return teacherAssignments.filter(assignment => assignment.event_id === eventId);
-  };
-
-  const renderLeaderboard = () => {
-    const totalPages = Math.ceil(leaderboard.length / itemsPerPage);
-    const paginatedLeaderboard = leaderboard.slice(
-      (leaderboardPage - 1) * itemsPerPage,
-      leaderboardPage * itemsPerPage
-    );
-  
     return (
-      <div className="mb-12">
-        <div className="flex items-center mb-6">
-          <div className="w-1 h-8 bg-gradient-to-b from-yellow-400 to-orange-500 rounded-full mr-4"></div>
-          <h2 className="text-3xl font-bold text-gray-800">Leaderboard</h2>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-lg">
-          <ul className="space-y-4">
-            {paginatedLeaderboard.map((teacher, index) => {
-              // Check if the current teacher is the logged-in user
-              const isCurrentUser = teacher.user_id === currentTeacherId;
-              return (
-                <li 
-                  key={teacher.user_id || index} 
-                  className={`flex items-center justify-between p-3 rounded-lg transition-all duration-200 ${
-                    isCurrentUser 
-                      ? 'bg-blue-100 border-l-4 border-blue-500 scale-105' 
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  <div className="flex items-center">
-                    <span className={`text-lg font-bold w-8 text-center ${index < 3 && leaderboardPage === 1 ? 'text-orange-500' : 'text-gray-500'}`}>
-                      {(leaderboardPage - 1) * itemsPerPage + index + 1}
-                    </span>
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm ml-4">
-                      {(teacher.name && typeof teacher.name === 'string') ? teacher.name.charAt(0).toUpperCase() : '?'}
-                    </div>
-                    <span className="ml-4 font-medium text-gray-700">{teacher.teacher_name || 'Unknown User'}</span>
-                  </div>
-                  <span className="font-bold text-lg text-green-600">{teacher.points || 0} pts</span>
-                </li>
-              );
-            })}
-          </ul>
-          {totalPages > 1 && (
-            <div className="mt-6 flex justify-between items-center">
-              <button
-                onClick={() => setLeaderboardPage(prev => Math.max(prev - 1, 1))}
-                disabled={leaderboardPage === 1}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Previous
-              </button>
-              <span className="text-sm text-gray-600">
-                Page {leaderboardPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => setLeaderboardPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={leaderboardPage === totalPages}
-                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Next
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  };
-  
-  const renderEventList = (events, title, titleColor = "text-gray-800") => (
-    <div className="mb-12">
-      <div className="flex items-center mb-6">
-        <div className="w-1 h-8 bg-gradient-to-b from-blue-500 to-purple-600 rounded-full mr-4"></div>
-        <h2 className={`text-3xl font-bold ${titleColor}`}>{title}</h2>
-      </div>
-      {events.length === 0 ? (
-        <div className="text-center py-12 bg-gray-50 rounded-xl border-2 border-dashed border-gray-300">
-          <p className="text-gray-500 text-lg">No {title.toLowerCase()} found.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {events.map((event) => {
-            const isAssigned = teacherAssignments.some(a => a.event_id === event.event_id);
-            
-            return (
-              <div 
-                key={event.event_id}
-                className={`relative overflow-hidden rounded-2xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1 ${
-                  isAssigned 
-                    ? "bg-gradient-to-br from-blue-50 to-indigo-100 border-2 border-blue-200" 
-                    : "bg-white border border-gray-200 hover:border-gray-300"
-                }`}
-                onClick={() => handleEventClick(event)}
-              >
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-800 line-clamp-2 pr-2 mb-3">{event.name}</h3>
-                  <p className="text-gray-600 text-sm line-clamp-3 mb-4 leading-relaxed">{event.description}</p>
-                  
-                  <div className="space-y-2 text-sm">
-                    <div className="flex items-center text-gray-500">
-                      <span>Starts: {event.start_date} {event.start_time}</span>
-                    </div>
-                    <div className="flex items-center text-gray-500">
-                      <span>Ends: {event.end_date} {event.end_time}</span>
-                    </div>
-                  </div>
-                  
-                  {isAssigned && (
-                    <div className="mt-4 inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Assigned to you
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex justify-center items-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600 text-lg">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex justify-center items-center p-4">
-        <p className="text-red-700 font-medium">{error}</p>
-      </div>
-    );
-  }
-
-  const assignedCurrentEvents = currentEvents.filter(event => 
-    teacherAssignments.some(a => a.event_id === event.event_id)
-  );
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6">
-       <div className="fixed top-6 right-6 z-50">
-        <div className="relative">
-          <button
-            onClick={handleNotificationClick}
-            className="bg-white hover:bg-gray-50 border border-gray-300 rounded-full p-3 shadow-lg hover:shadow-xl transition-all duration-200"
-          >
-            <svg className="w-6 h-6 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-            {notificationCount.unread_count > 0 && (
-              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-6 w-6 flex items-center justify-center font-bold">
-                {notificationCount.unread_count > 99 ? '99+' : notificationCount.unread_count}
-              </span>
-            )}
-          </button>
-        </div>
-
-        {showNotifications && (
-          <div className="absolute top-16 right-0 w-96 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 max-h-[32rem] overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-gray-200 bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-               <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold">Notifications</h3>
-                <button onClick={() => setShowNotifications(false)} className="hover:text-gray-200">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                </button>
-              </div>
-              <div className="flex items-center justify-between mt-2 text-sm">
-                <span>{notificationCount.unread_count} unread of {notificationCount.total_count} total</span>
-                {notificationCount.unread_count > 0 && (
-                  <button onClick={markAllAsRead} className="hover:text-white underline">
-                    Mark all read
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="p-3 bg-gray-50 border-b border-gray-200">
-                <div className="flex space-x-2">
-                    <button onClick={() => handleFilterChange(true)} className={`px-3 py-1 text-sm rounded-full transition-colors ${!showUnreadOnly ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>All</button>
-                    <button onClick={() => handleFilterChange(false)} className={`px-3 py-1 text-sm rounded-full transition-colors ${showUnreadOnly ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'}`}>Unread</button>
-                </div>
-            </div>
-
-            <div className="flex-1 overflow-y-auto">
-              {notificationLoading ? (
-                <div className="p-6 text-center"><div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500 mx-auto"></div></div>
-              ) : notifications.length === 0 ? (
-                <div className="p-6 text-center text-gray-500"><p>No notifications found</p></div>
-              ) : (
-                notifications.map((notification) => (
-                  <div key={notification.id} className={`p-4 border-b border-gray-100 hover:bg-gray-50 transition-colors ${!notification.is_read ? 'bg-blue-50' : ''}`}>
-                      <h4 className="text-sm font-medium text-gray-900">{notification.title}</h4>
-                      <p className="text-sm text-gray-600 mb-2">{notification.message}</p>
-                      <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-400">{formatDate(notification.created_at)}</span>
-                          <div className="flex space-x-2">
-                              {!notification.is_read && <button onClick={() => markAsRead(notification.id)} className="text-xs text-blue-600 hover:text-blue-800">Mark read</button>}
-                              <button onClick={() => deleteNotification(notification.id)} className="text-xs text-red-600 hover:text-red-800">Delete</button>
-                          </div>
-                      </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Persistent Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Faculty Dashboard
-          </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Welcome, <span className="font-semibold">{userName}</span>! Here's an overview of points and events.
-          </p>
-        </div>
-
-        {selectedEvent ? (
-          <div className="mb-8">
-            <button 
-              className="mb-6 group flex items-center px-6 py-3 bg-white hover:bg-gray-50 border border-gray-300 rounded-xl shadow-sm hover:shadow-md transition-all duration-200"
-              onClick={() => setSelectedEvent(null)}
+        <div className="mt-auto flex justify-between items-center px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-2xl">
+            <button
+                onClick={() => onPageChange(prev => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-5 py-2 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Back to Dashboard
+                Previous
             </button>
-            
-            <div className="bg-white shadow-xl rounded-2xl overflow-hidden">
-              <div className="bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-6">
-                <h2 className="text-3xl font-bold text-white mb-2">{selectedEvent.name}</h2>
-                <p className="text-blue-100 text-lg opacity-90">{selectedEvent.description}</p>
-              </div>
-              <div className="p-8">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-                  <div className="bg-gray-50 rounded-xl p-6">
-                    <h3 className="font-bold text-gray-800 text-lg mb-4">Event Duration</h3>
-                    <p>From: {selectedEvent.start_date} {selectedEvent.start_time}</p>
-                    <p>To: {selectedEvent.end_date} {selectedEvent.end_time}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-gray-800 text-lg mb-4">All Assigned Faculty</h3>
-                  <div className="bg-gray-50 rounded-xl overflow-hidden">
-                     <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-100">
-                          <tr>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Teacher</th>
-                            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {allAssignmentsForSelectedEvent.map(assignment => {
-                            // Check if the assignment belongs to the current user
-                            const isCurrentUser = assignment.teacher_id === currentTeacherId;
-                            return (
-                              <tr 
-                                key={assignment.assignment_id} 
-                                className={isCurrentUser ? 'bg-blue-100' : ''}
-                              >
-                                <td className="px-6 py-4 whitespace-nowrap font-medium">{assignment.teachername}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{assignment.rolename}</td>
-                              </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
-                  </div>
-                </div>
-                
-                {getTeacherAssignmentsForEvent(selectedEvent.event_id).length > 0 && (
-                  <div className="mt-8">
-                    <h3 className="font-bold text-gray-800 text-lg mb-4">Your Assignments</h3>
-                    <div className="bg-gray-50 rounded-xl overflow-hidden">
-                       <table className="min-w-full divide-y divide-gray-200">
-                          <thead className="bg-gray-100">
-                            <tr>
-                              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Role</th>
-                              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Event</th>
-                            </tr>
-                          </thead>
-                          <tbody className="bg-white divide-y divide-gray-200">
-                            {getTeacherAssignmentsForEvent(selectedEvent.event_id).map(assignment => (
-                              <tr key={assignment.assignment_id}>
-                                <td className="px-6 py-4 whitespace-nowrap">{assignment.rolename}</td>
-                                <td className="px-6 py-4 whitespace-nowrap">{assignment.eventname}</td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        ) : (
-          <>
-            {renderLeaderboard()}
-            {renderEventList(assignedCurrentEvents, "My Assigned Events", "text-blue-700")}
-            {renderEventList(currentEvents, "All Current Events", "text-green-700")}
-          </>
-        )}
-      </div>
-    </div>
-  );
+            <span className="text-base text-gray-600">
+                Page {currentPage} of {totalPages}
+            </span>
+            <button
+                onClick={() => onPageChange(prev => Math.min(prev + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-5 py-2 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+                Next
+            </button>
+        </div>
+    );
 };
 
-export default TeacherDashboard;
+/**
+ * A modal component to display detailed information about a selected event.
+ */
+const EventDetailModal = ({ event, assignments, currentTeacherId, onClose }) => {
+    if (!event) return null;
+
+    return (
+        <div className="fixed inset-0 bg-black bg-opacity-60 z-50 flex justify-center items-center p-4 transition-opacity duration-300">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] flex flex-col transform transition-all duration-300 scale-95 animate-scale-in">
+                <header className="sticky top-0 bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-5 flex justify-between items-center z-10 rounded-t-2xl">
+                    <h2 className="text-3xl font-bold text-white">{event.name}</h2>
+                    <button onClick={onClose} className="text-white hover:text-gray-200 text-4xl font-light">&times;</button>
+                </header>
+                <main className="p-8 overflow-y-auto">
+                    <p className="text-gray-700 mb-8 text-lg">{event.description}</p>
+                    <div className="bg-gray-50 rounded-xl p-6 mb-8 border border-gray-200">
+                        <h3 className="font-bold text-gray-800 text-xl mb-3">Event Duration</h3>
+                        <p className="text-base text-gray-600">From: {event.start_date} at {event.start_time}</p>
+                        <p className="text-base text-gray-600">To: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{event.end_date} at {event.end_time}</p>
+                    </div>
+
+                    <div>
+                        <h3 className="font-bold text-gray-800 text-2xl mb-5">All Assigned Faculty</h3>
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                            <table className="min-w-full divide-y divide-gray-200">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Teacher</th>
+                                        <th className="px-6 py-4 text-left text-sm font-semibold text-gray-600 uppercase tracking-wider">Role</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="bg-white divide-y divide-gray-200">
+                                    {assignments.length > 0 ? assignments.map(a => (
+                                        <tr key={a.assignment_id} className={a.teacher_id === currentTeacherId ? 'bg-blue-100' : ''}>
+                                            <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-800 text-base">{a.teachername}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-gray-700 text-base">{a.rolename}</td>
+                                        </tr>
+                                    )) : (
+                                        <tr>
+                                            <td colSpan="2" className="text-center py-8 text-gray-500 text-base">No faculty assigned to this event yet.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    );
+};
+
+/**
+ * A reusable table component for displaying lists of events.
+ */
+const EventTable = ({ events, onEventClick }) => (
+    <div className="max-h-96 overflow-y-auto">
+        <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50 sticky top-0">
+                <tr>
+                    <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Event Name</th>
+                    <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
+                    <th scope="col" className="px-6 py-4 text-left text-sm font-medium text-gray-500 uppercase tracking-wider">End Date</th>
+                </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+                {events.length > 0 ? events.map(event => (
+                    <tr key={event.event_id} onClick={() => onEventClick(event)} className="hover:bg-gray-100 cursor-pointer transition-colors duration-200">
+                        <td className="px-6 py-5 whitespace-nowrap text-base font-medium text-gray-900">{event.name}</td>
+                        <td className="px-6 py-5 whitespace-nowrap text-base text-gray-600">{event.start_date}</td>
+                        <td className="px-6 py-5 whitespace-nowrap text-base text-gray-600">{event.end_date}</td>
+                    </tr>
+                )) : (
+                    <tr>
+                        <td colSpan="3" className="text-center py-12 text-gray-500 text-base">No events in this category.</td>
+                    </tr>
+                )}
+            </tbody>
+        </table>
+    </div>
+);
+
+
+/**
+ * The main analytical dashboard component.
+ */
+const FacultyDashboard = () => {
+    // State for data fetched from the API
+    const [teachers, setTeachers] = useState([]);
+    const [events, setEvents] = useState([]);
+    const [assignments, setAssignments] = useState([]);
+    const [leaderboard, setLeaderboard] = useState([]);
+    
+    // State for UI management
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [activeTab, setActiveTab] = useState('current');
+    const [selectedEvent, setSelectedEvent] = useState(null);
+    
+    // State for logged-in user
+    const [currentTeacherId, setCurrentTeacherId] = useState(null);
+    const [userName, setUserName] = useState('');
+
+    // --- PAGINATION STATES ---
+    const [leaderboardPage, setLeaderboardPage] = useState(1);
+    const [eventsPage, setEventsPage] = useState(1);
+    const [dutyRosterPage, setDutyRosterPage] = useState(1);
+    const LEADERBOARD_ITEMS_PER_PAGE = 10;
+    const EVENTS_ITEMS_PER_PAGE = 10;
+    const ROSTER_ITEMS_PER_PAGE = 15;
+
+    // Notification states
+    const [notifications, setNotifications] = useState([]);
+    const [showNotifications, setShowNotifications] = useState(false);
+    const [notificationCount, setNotificationCount] = useState({ total_count: 0, unread_count: 0 });
+    const [notificationLoading, setNotificationLoading] = useState(false);
+    const [showUnreadOnly, setShowUnreadOnly] = useState(true); // Default to 'All'
+
+    useEffect(() => {
+        const fetchAllData = async () => {
+            try {
+                const user = JSON.parse(localStorage.getItem("user"));
+                const teacherId = user?.userid; 
+                const name = user?.name;
+
+                if (!teacherId) {
+                    setError('Your session has expired. Please login again.');
+                    setLoading(false);
+                    return;
+                }
+                setCurrentTeacherId(teacherId);
+                setUserName(name);
+
+                const [teachersRes, eventsRes, assignmentsRes, dashboardRes, notificationsCountRes] = await Promise.all([
+                    axios.get(`${API_BASE_URL}/teachers`),
+                    axios.get(`${API_BASE_URL}/events`),
+                    axios.get(`${API_BASE_URL}/assignments`),
+                    axios.get(`${API_BASE_URL}/dashboard/faculty`),
+                    axios.get(`${API_BASE_URL}/teachers/${teacherId}/notifications/count`)
+                ]);
+
+                setTeachers(teachersRes.data || []);
+                setEvents(eventsRes.data || []);
+                setAssignments(assignmentsRes.data || []);
+                setLeaderboard(dashboardRes.data.leaderboard || []);
+                setNotificationCount(notificationsCountRes.data || { total_count: 0, unread_count: 0 });
+
+            } catch (err) {
+                console.error("Failed to fetch dashboard data:", err);
+                setError("Could not load data from the server. Please check your connection.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchAllData();
+    }, []);
+
+    // --- Notification Handlers ---
+    const fetchNotifications = async (showAll) => {
+        if (!currentTeacherId) return;
+        setNotificationLoading(true);
+        try {
+            const res = await axios.get(`${API_BASE_URL}/teachers/${currentTeacherId}/notifications?show_read=${showAll}`);
+            setNotifications(Array.isArray(res.data) ? res.data : []);
+        } catch (err) {
+            console.error('Error fetching notifications:', err);
+            setNotifications([]);
+        } finally {
+            setNotificationLoading(false);
+        }
+    };
+
+    const handleNotificationClick = () => {
+        const willShow = !showNotifications;
+        setShowNotifications(willShow);
+        if (willShow) {
+            fetchNotifications(showUnreadOnly);
+        }
+    };
+    
+    const markAsRead = async (notificationId) => {
+        try {
+            await axios.put(`${API_BASE_URL}/notifications/${notificationId}/read`);
+            setNotifications(notifications.map(n => n.id === notificationId ? { ...n, is_read: true } : n));
+            setNotificationCount(prev => ({ ...prev, unread_count: Math.max(0, prev.unread_count - 1) }));
+        } catch (err) { console.error("Failed to mark notification as read", err); }
+    };
+    
+    const deleteNotification = async (notificationId) => {
+        try {
+            await axios.delete(`${API_BASE_URL}/notifications/${notificationId}`);
+            const deletedNotif = notifications.find(n => n.id === notificationId);
+            setNotifications(notifications.filter(n => n.id !== notificationId));
+            setNotificationCount(prev => ({
+                total_count: prev.total_count - 1,
+                unread_count: deletedNotif && !deletedNotif.is_read ? prev.unread_count - 1 : prev.unread_count,
+            }));
+        } catch(err) { console.error("Failed to delete notification", err); }
+    };
+
+    const handleFilterChange = (showAll) => {
+        setShowUnreadOnly(showAll);
+        fetchNotifications(showAll);
+    };
+    
+    const formatDate = (dateString) => new Date(dateString).toLocaleString(undefined, {
+        dateStyle: 'medium',
+        timeStyle: 'short'
+    });
+
+    // --- Memoized Data Processing ---
+    const dutyRosterData = useMemo(() => {
+        if (teachers.length === 0) return [];
+        const assignmentsMap = assignments.reduce((acc, assignment) => {
+            if (!acc[assignment.teacher_id]) acc[assignment.teacher_id] = {};
+            acc[assignment.teacher_id][assignment.event_id] = {
+                roleName: assignment.rolename,
+                points: assignment.points_awarded ?? assignment.point ?? 0
+            };
+            return acc;
+        }, {});
+        return teachers.map(teacher => ({
+            teacherName: teacher.name,
+            totalPoints: teacher.point,
+            assignmentsByEvent: events.reduce((acc, event) => {
+                acc[event.event_id] = assignmentsMap[teacher._id]?.[event.event_id] || null;
+                return acc;
+            }, {})
+        }));
+    }, [teachers, events, assignments]);
+    
+    const categorizedEvents = useMemo(() => {
+        const now = new Date();
+        const cats = { current: [], upcoming: [], past: [] };
+        events.forEach(event => {
+            const startDate = new Date(`${event.start_date}T${event.start_time || '00:00'}:00`);
+            const endDate = new Date(`${event.end_date}T${event.end_time || '23:59'}:00`);
+            if (now >= startDate && now <= endDate) cats.current.push(event);
+            else if (now < startDate) cats.upcoming.push(event);
+            else cats.past.push(event);
+        });
+        return cats;
+    }, [events]);
+
+    const assignmentsForSelectedEvent = useMemo(() => {
+        if (!selectedEvent) return [];
+        return assignments.filter(a => a.event_id === selectedEvent.event_id);
+    }, [selectedEvent, assignments]);
+    
+    const handleTabClick = (tabName) => {
+        setActiveTab(tabName);
+        setEventsPage(1); 
+    };
+
+    // --- UI Render Logic ---
+    if (loading) return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+            <div className="text-center">
+                <div className="animate-spin rounded-full h-20 w-20 border-t-4 border-b-4 border-blue-600 mx-auto"></div>
+                <p className="mt-5 text-xl text-gray-700 font-semibold">Loading Dashboard...</p>
+            </div>
+        </div>
+    );
+
+    if (error) return (
+        <div className="flex items-center justify-center min-h-screen bg-red-50 p-4">
+            <div className="text-center bg-white p-12 rounded-lg shadow-xl border border-red-200">
+                <h2 className="text-3xl font-bold text-red-700">An Error Occurred</h2>
+                <p className="mt-3 text-lg text-gray-600">{error}</p>
+            </div>
+        </div>
+    );
+
+    // --- PAGINATION DATA SLICING ---
+    const totalLeaderboardPages = Math.ceil(leaderboard.length / LEADERBOARD_ITEMS_PER_PAGE);
+    const paginatedLeaderboard = leaderboard.slice(
+        (leaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE,
+        leaderboardPage * LEADERBOARD_ITEMS_PER_PAGE
+    );
+
+    const activeEventList = categorizedEvents[activeTab];
+    const totalEventPages = Math.ceil(activeEventList.length / EVENTS_ITEMS_PER_PAGE);
+    const paginatedEvents = activeEventList.slice(
+        (eventsPage - 1) * EVENTS_ITEMS_PER_PAGE,
+        eventsPage * EVENTS_ITEMS_PER_PAGE
+    );
+
+    const totalDutyRosterPages = Math.ceil(dutyRosterData.length / ROSTER_ITEMS_PER_PAGE);
+    const paginatedDutyRosterData = dutyRosterData.slice(
+        (dutyRosterPage - 1) * ROSTER_ITEMS_PER_PAGE,
+        dutyRosterPage * ROSTER_ITEMS_PER_PAGE
+    );
+
+    return (
+        <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8">
+            {/* Notification Bell & Dropdown */}
+            <div className="fixed top-6 right-6 z-50">
+                <button onClick={handleNotificationClick} className="relative bg-white p-3 rounded-full shadow-lg hover:bg-gray-100 transition">
+                    <svg className="w-7 h-7 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.4-1.4a2 2 0 01-.6-1.4V11a6 6 0 00-5-5.9V5a2 2 0 10-4 0v.1A6 6 0 004 11v3.2c0 .5-.2 1-.6 1.4L2 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
+                    {notificationCount.unread_count > 0 && (
+                        <span className="absolute -top-2 -right-2 bg-red-500 text-white text-sm font-bold rounded-full h-7 w-7 flex items-center justify-center animate-pulse">
+                            {notificationCount.unread_count}
+                        </span>
+                    )}
+                </button>
+                {showNotifications && (
+                     <div className="absolute top-16 right-0 w-96 bg-white border border-gray-200 rounded-xl shadow-2xl z-50 max-h-[32rem] overflow-hidden flex flex-col">
+                        <div className="p-4 border-b bg-gray-50">
+                            <h3 className="text-xl font-semibold text-gray-800">Notifications</h3>
+                             <div className="flex space-x-2 mt-2">
+                                <button onClick={() => handleFilterChange(true)} className={`px-4 py-1 text-base rounded-full transition-colors ${showUnreadOnly ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>All</button>
+                                <button onClick={() => handleFilterChange(false)} className={`px-4 py-1 text-base rounded-full transition-colors ${!showUnreadOnly ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-700'}`}>Unread</button>
+                            </div>
+                        </div>
+                        <div className="flex-1 overflow-y-auto">
+                           {notificationLoading ? <p className="p-6 text-center text-gray-500">Loading...</p> : notifications.length === 0 ? <p className="p-6 text-center text-gray-500">No notifications found.</p> : notifications.map(n => (
+                                <div key={n.id} className={`p-4 border-b border-gray-100 hover:bg-gray-50 ${!n.is_read ? 'bg-blue-50' : ''}`}>
+                                    <h4 className="font-semibold text-gray-900 text-lg">{n.title}</h4>
+                                    <p className="text-base text-gray-600">{n.message}</p>
+                                    <div className="flex justify-between items-center mt-2">
+                                        <span className="text-sm text-gray-400">{formatDate(n.created_at)}</span>
+                                        <div className="flex items-center space-x-4">
+                                            {!n.is_read && <button onClick={() => markAsRead(n.id)} className="text-sm font-semibold text-blue-600 hover:underline">Mark read</button>}
+                                            <button onClick={() => deleteNotification(n.id)} className="text-sm font-semibold text-red-600 hover:underline">Delete</button>
+                                        </div>
+                                    </div>
+                                </div>
+                           ))}
+                        </div>
+                    </div>
+                )}
+            </div>
+
+            <div className="max-w-screen-2xl mx-auto">
+                <header className="mb-12 text-center">
+                    <h1 className="text-5xl md:text-6xl font-extrabold text-gray-800">Faculty Analytical Dashboard</h1>
+                    <p className="mt-3 text-xl text-gray-500">Welcome, <span className="font-semibold">{userName}</span>! Here is the comprehensive overview.</p>
+                </header>
+
+                <section className="grid grid-cols-1 lg:grid-cols-3 gap-10 mb-10">
+                    <div className="bg-white rounded-2xl shadow-lg flex flex-col">
+                        <div className="p-7 flex-1">
+                            <h2 className="text-3xl font-bold text-gray-800 mb-5">Leaderboard</h2>
+                            <ul className="space-y-4">
+                                {paginatedLeaderboard.map((teacher, index) => (
+                                    <li key={teacher.teacher_id} className="flex items-center justify-between p-4 rounded-lg hover:bg-gray-50">
+                                        <div className="flex items-center">
+                                            <span className={`text-xl font-bold w-10 text-center ${index < 3 ? 'text-blue-600' : 'text-gray-500'}`}>
+                                                {(leaderboardPage - 1) * LEADERBOARD_ITEMS_PER_PAGE + index + 1}
+                                            </span>
+                                            <span className="ml-5 font-medium text-gray-800 text-lg">{teacher.teacher_name}</span>
+                                        </div>
+                                        <span className="font-bold text-xl text-green-600">{teacher.points} pts</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <Pagination currentPage={leaderboardPage} totalPages={totalLeaderboardPages} onPageChange={setLeaderboardPage} />
+                    </div>
+                    <div className="lg:col-span-2 bg-white rounded-2xl shadow-lg flex flex-col">
+                        <div className="p-7 flex-1">
+                            <h2 className="text-3xl font-bold text-gray-800 mb-5">Events Overview</h2>
+                            <div className="border-b border-gray-200">
+                                <nav className="-mb-px flex space-x-8">
+                                    <button onClick={() => handleTabClick('current')} className={`${activeTab === 'current' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'} py-4 px-1 border-b-2 font-medium text-lg`}>Current ({categorizedEvents.current.length})</button>
+                                    <button onClick={() => handleTabClick('upcoming')} className={`${activeTab === 'upcoming' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'} py-4 px-1 border-b-2 font-medium text-lg`}>Upcoming ({categorizedEvents.upcoming.length})</button>
+                                    <button onClick={() => handleTabClick('past')} className={`${activeTab === 'past' ? 'border-blue-500 text-blue-600' : 'border-transparent text-gray-500'} py-4 px-1 border-b-2 font-medium text-lg`}>Past ({categorizedEvents.past.length})</button>
+                                </nav>
+                            </div>
+                            <div className="mt-5">
+                                <EventTable events={paginatedEvents} onEventClick={setSelectedEvent} />
+                            </div>
+                        </div>
+                        <Pagination currentPage={eventsPage} totalPages={totalEventPages} onPageChange={setEventsPage} />
+                    </div>
+                </section>
+                
+                <section className="bg-white rounded-2xl shadow-lg overflow-hidden flex flex-col">
+                    <div className="p-7 border-b border-gray-200">
+                        <h2 className="text-3xl font-bold text-gray-800">Faculty Duty & Points Matrix</h2>
+                        <p className="text-base text-gray-500 mt-2">Scroll horizontally to view all events.</p>
+                    </div>
+                    <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                            <thead className="bg-gray-100">
+                                <tr>
+                                    <th className="sticky left-0 bg-gray-100 px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase tracking-wider z-10" style={{minWidth: '220px'}}>Faculty Name</th>
+                                    <th className="sticky left-[220px] bg-gray-100 px-6 py-4 text-left text-sm font-bold text-gray-600 uppercase tracking-wider z-10">Total Points</th>
+                                    {events.map(event => (
+                                        <th key={event.event_id} className="px-6 py-4 text-center text-sm font-bold text-gray-600 uppercase tracking-wider" style={{minWidth: '185px'}}>{event.name}</th>
+                                    ))}
+                                </tr>
+                            </thead>
+                            <tbody className="bg-white divide-y divide-gray-200">
+                                {paginatedDutyRosterData.map((row, index) => (
+                                    <tr key={index} className="hover:bg-gray-50">
+                                        <td className="sticky left-0 bg-white hover:bg-gray-50 px-6 py-5 whitespace-nowrap font-medium text-gray-800 text-base z-10">{row.teacherName}</td>
+                                        <td className="sticky left-[220px] bg-white hover:bg-gray-50 px-6 py-5 whitespace-nowrap font-bold text-gray-800 text-base z-10">{row.totalPoints}</td>
+                                        {events.map(event => {
+                                            const assignment = row.assignmentsByEvent[event.event_id];
+                                            return (
+                                                <td key={event.event_id} className="px-6 py-5 whitespace-nowrap text-center">
+                                                    {assignment ? (
+                                                        <div>
+                                                            <p className="text-base font-semibold text-blue-700">{assignment.roleName}</p>
+                                                            <p className="text-sm font-medium text-green-700">{assignment.points} pts</p>
+                                                        </div>
+                                                    ) : <span className="text-gray-400 text-base">-</span>}
+                                                </td>
+                                            );
+                                        })}
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                     <Pagination currentPage={dutyRosterPage} totalPages={totalDutyRosterPages} onPageChange={setDutyRosterPage} />
+                </section>
+            </div>
+
+            <EventDetailModal
+                event={selectedEvent}
+                assignments={assignmentsForSelectedEvent}
+                currentTeacherId={currentTeacherId}
+                onClose={() => setSelectedEvent(null)}
+            />
+        </div>
+    );
+};
+
+export default FacultyDashboard;

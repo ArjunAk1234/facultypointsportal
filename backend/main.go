@@ -96,5 +96,7 @@ func main() {
 	r.POST("/events/create-from-excel", CreateEventFromExcel)
 	// In your main function where you define routes...
 	r.POST("/events/:eventid/roles/:roleid/auto-assign", AutoAssignLowestPointTeacherToRole)
+
+	r.DELETE("/roles/:id", DeleteRole)
 	r.Run(":" + port)
 }

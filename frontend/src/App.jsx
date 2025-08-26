@@ -15,6 +15,7 @@ import Facultylist from './Pages/Admin/facultylist';
 import PrivateRoute from './Pages/Auth/PrivateRoute';
 import FacultyDashboardLayout from './Pages/Layout/FacultydashboardLayout';
 import FacultyEventHistory from './Pages/Faculty/FacultyEventHistory';
+import Facultyleaderboard from './Pages/Faculty/Facultyleaderboard';
 
 import { AuthProvider } from './Pages/Auth/AuthContext'; 
 
@@ -56,6 +57,7 @@ function App() {
           >
             <Route index element={<FacultyDashboard />} />
             <Route path="event-historyfaculty" element={<FacultyEventHistory />} />
+            <Route path="facultyleaderboard" element={<Facultyleaderboard />} />
           </Route>
 
           {/* Unauthorized page route (you should create this page) */}

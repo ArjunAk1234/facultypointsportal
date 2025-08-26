@@ -774,6 +774,30 @@ const AdminDashboard = () => {
     setExcelFile(e.target.files[0]);
   };
 
+  const handleDeleteEvent = async (eventId, eventName) => {
+    const confirmDelete = window.confirm(
+      `Are you sure you want to delete the event "${eventName}"?\n\nDo you also want to deduct points from teachers?`
+    );
+  
+    if (!confirmDelete) return;
+  
+    // Ask about point deduction
+    const deductPoints = window.confirm("Deduct points from teachers assigned to this event?");
+  
+    try {
+      await axios.delete("https://facultypointsportal.onrender.com/event", {
+        data: { event_id: eventId, deduct_points: deductPoints }
+      });
+      alert(`Event "${eventName}" deleted successfully.`);
+      fetchEvents(activeTab);
+     
+    } catch (error) {
+      console.error("Error deleting event:", error);
+      alert(error.response?.data?.error || "Failed to delete event.");
+    }
+  };
+  
+
   // NEW: Handler for submitting the Excel file to the backend
   const handleExcelSubmit = (e) => {
     e.preventDefault();
@@ -991,7 +1015,15 @@ const AdminDashboard = () => {
                       <button className="btn btn-outline-secondary" onClick={() => handleEventReport(event.event_id, event.name)}>
                         Event Report
                       </button>
+                      <button
+                        className="btn-icon btn-delete"
+                        onClick={() => handleDeleteEvent(event.event_id, event.name)}
+                        title="Delete Event"
+                      >
+                      Delete
+                      </button>
                    </div>
+
                 </div>
               ))}
             </div>

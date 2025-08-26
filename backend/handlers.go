@@ -2487,3 +2487,113 @@ func GetAllAssignments(c *gin.Context) {
 
 	c.JSON(http.StatusOK, assignmentsWithPoints)
 }
+
+func DeleteRole(c *gin.Context) {
+	// Define a struct for the optional request body.
+	type DeleteRoleRequest struct {
+		DeductPoints bool `json:"deduct_points"`
+	}
+
+	// 1. Get Role ID from the URL parameter.
+	roleIDStr := c.Param("id")
+	roleID, err := primitive.ObjectIDFromHex(roleIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID format"})
+		return
+	}
+
+	// 2. Bind the optional JSON body. An empty body is acceptable and will result in DeductPoints being false.
+	var req DeleteRoleRequest
+	if err := c.ShouldBindJSON(&req); err != nil && err.Error() != "EOF" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body: " + err.Error()})
+		return
+	}
+
+	// 3. Set up a context with a timeout for the database operations.
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	// Define collection helpers.
+	roleCollection := db.Collection(roleCollection)
+	assignmentCollection := db.Collection(teacherAssignmentCollection)
+	teacherCollection := db.Collection(teacherCollection)
+	eventCollection := db.Collection(eventCollection)
+
+	// 4. Find the role first to ensure it exists and to get its details.
+	var roleToDelete Role
+	if err := roleCollection.FindOne(ctx, bson.M{"_id": roleID}).Decode(&roleToDelete); err != nil {
+		if err == mongo.ErrNoDocuments {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Role not found"})
+		} else {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finding role: " + err.Error()})
+		}
+		return
+	}
+
+	// 5. If requested, deduct points from all assigned teachers.
+	if req.DeductPoints {
+		// Find all assignments for this role.
+		cursor, err := assignmentCollection.Find(ctx, bson.M{"role_id": roleID})
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve assignments for point deduction"})
+			return
+		}
+		var assignmentsToDelete []Assignment
+		if err = cursor.All(ctx, &assignmentsToDelete); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not decode assignments for point deduction"})
+			return
+		}
+
+		// Loop through each assignment and deduct points from the corresponding teacher.
+		for _, assignment := range assignmentsToDelete {
+			pointsToDeduct := 0
+			if assignment.PointsAwarded != nil {
+				pointsToDeduct = *assignment.PointsAwarded // Prioritize custom points.
+			} else {
+				pointsToDeduct = roleToDelete.Point // Fallback to role's default points.
+			}
+
+			if pointsToDeduct != 0 {
+				_, err := teacherCollection.UpdateOne(
+					ctx,
+					bson.M{"_id": assignment.TeacherID},
+					bson.M{"$inc": bson.M{"point": -pointsToDeduct}},
+				)
+				if err != nil {
+					// Log a warning but continue the process, as this is not a fatal error for the deletion itself.
+					fmt.Printf("Warning: Failed to deduct points for teacher %s during role deletion: %v\n", assignment.TeacherID.Hex(), err)
+				}
+			}
+		}
+	}
+
+	// 6. Delete all teacher assignments associated with this role.
+	if _, err := assignmentCollection.DeleteMany(ctx, bson.M{"role_id": roleID}); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete associated teacher assignments"})
+		return
+	}
+
+	// 7. Remove the role's reference from the parent event's arrays.
+	updateEventPayload := bson.M{
+		"$pull": bson.M{
+			"roles":            bson.M{"id": roleID},
+			"assginedteachers": bson.M{"id": roleID}, // Assuming 'id' in assginedteachers refers to the role ID.
+		},
+	}
+	if _, err := eventCollection.UpdateOne(ctx, bson.M{"_id": roleToDelete.EventID}, updateEventPayload); err != nil {
+		// This is not critical enough to halt the process, but it's good to know if it fails.
+		fmt.Printf("Warning: Failed to pull role references from event %s during role deletion: %v\n", roleToDelete.EventID.Hex(), err)
+	}
+
+	// 8. Delete the role document itself.
+	if _, err := roleCollection.DeleteOne(ctx, bson.M{"_id": roleID}); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete the role"})
+		return
+	}
+
+	// 9. Send a final success response.
+	c.JSON(http.StatusOK, gin.H{
+		"message":         "Role and all associated data deleted successfully",
+		"deducted_points": req.DeductPoints,
+	})
+}

@@ -456,6 +456,21 @@ func CreateTeacher(c *gin.Context) {
 
 	userCollection := db.Collection(userCollection)
 	var existingUser User
+	teacherCollection := db.Collection("teacher")
+	
+
+	// ✅ Step 1: Check for duplicate email in teacher collection
+	var existingTeacher Teacher
+	err := teacherCollection.FindOne(ctx, bson.M{"email": teacher.Email}).Decode(&existingTeacher)
+	if err == nil {
+		// Teacher with same email already exists
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Teacher with this email already exists"})
+		return
+	} else if err != mongo.ErrNoDocuments {
+		// Some other DB error
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking teacher database: " + err.Error()})
+		return
+	}
 
 	// Check if a user with the provided email already exists in the user database.
 	err := userCollection.FindOne(ctx, bson.M{"email": teacher.Email}).Decode(&existingUser)

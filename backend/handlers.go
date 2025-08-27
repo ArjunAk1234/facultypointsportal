@@ -435,6 +435,56 @@ func CreateRole(c *gin.Context) {
 
 //		c.JSON(http.StatusOK, teacher)
 //	}
+//original
+// func CreateTeacher(c *gin.Context) {
+// 	var teacher Teacher
+// 	if err := c.ShouldBindJSON(&teacher); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+// 		return
+// 	}
+
+// 	// Validate that the Departmentname field is not empty.
+// 	if teacher.Departmentname == "" {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Departmentname field is required"})
+// 		return
+// 	}
+
+// 	// Initialize points to 0 for a new teacher.
+// 	teacher.Point = 0
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+// 	defer cancel()
+
+// 	userCollection := db.Collection(userCollection)
+// 	var existingUser User
+
+// 	// Check if a user with the provided email already exists in the user database.
+// 	err := userCollection.FindOne(ctx, bson.M{"email": teacher.Email}).Decode(&existingUser)
+// 	if err == nil {
+// 		// If the user exists, use their ID for the new teacher's ID and UserID.
+// 		teacher.ID = existingUser.ID
+// 		teacher.UserID = existingUser.ID
+// 	} else if err == mongo.ErrNoDocuments {
+// 		// If the user does not exist, create a new ID for the teacher.
+// 		// A new user will not be created in the user database.
+// 		teacher.ID = primitive.NewObjectID()
+// 		teacher.UserID = teacher.ID
+// 	} else {
+// 		// Handle other potential errors from FindOne.
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking for existing user: " + err.Error()})
+// 		return
+// 	}
+
+// 	teacherCollection := db.Collection(teacherCollection)
+// 	_, err = teacherCollection.InsertOne(ctx, teacher)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create teacher: " + err.Error()})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, teacher)
+// }
+
 func CreateTeacher(c *gin.Context) {
 	var teacher Teacher
 	if err := c.ShouldBindJSON(&teacher); err != nil {
@@ -454,9 +504,8 @@ func CreateTeacher(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	userCollection := db.Collection(userCollection)
+	userCollection := db.Collection(userCollection) // Assuming userCollectionName is defined elsewhere as a string
 	teacherCollection := db.Collection("teacher")
-	
 
 	// Step 1: Check for duplicate email in teacher collection
 	var existingTeacher Teacher
@@ -468,10 +517,11 @@ func CreateTeacher(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking teacher database: " + err.Error()})
 		return
 	}
-	var existingUser User
 
+	var existingUser User
 	// Check if a user with the provided email already exists in the user database.
-	err := userCollection.FindOne(ctx, bson.M{"email": teacher.Email}).Decode(&existingUser)
+	// Use = for assignment here, as 'err' is already declared.
+	err = userCollection.FindOne(ctx, bson.M{"email": teacher.Email}).Decode(&existingUser)
 	if err == nil {
 		// If the user exists, use their ID for the new teacher's ID and UserID.
 		teacher.ID = existingUser.ID
@@ -487,7 +537,7 @@ func CreateTeacher(c *gin.Context) {
 		return
 	}
 
-	teacherCollection := db.Collection(teacherCollection)
+	// You already defined teacherCollection above, no need to redefine or call db.Collection again.
 	_, err = teacherCollection.InsertOne(ctx, teacher)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create teacher: " + err.Error()})

@@ -474,3 +474,159 @@
   background-color: #3b82f6;
   color: white;
 }
+/* Existing styles */
+
+/* Pagination container */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem; /* Adjust as needed */
+  gap: 1rem;
+}
+
+.pagination-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem; /* Equivalent to rounded-md */
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  background-color: #ffffff; /* bg-white */
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 500; /* font-medium */
+  color: #374151; /* text-gray-700 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #f3f4f6; /* hover:bg-gray-50 */
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-button svg {
+  margin-right: 0.5rem;
+  margin-left: -0.125rem;
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #6b7280; /* text-gray-400 */
+}
+
+.pagination-button:last-child svg {
+  margin-right: -0.125rem;
+  margin-left: 0.5rem;
+}
+
+.pagination-info {
+  font-size: 0.875rem; /* text-sm */
+  color: #6b7280; /* text-gray-700 */
+}
+/* Existing styles */
+
+/* Teachers Header (flexbox for search bar alignment) */
+.teachers-header {
+  display: flex;
+  justify-content: space-between; /* To push search to the right */
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+/* Search Bar Container */
+.search-bar-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 300px; /* Adjust width as needed */
+}
+
+.search-icon {
+  position: absolute;
+  left: 0.75rem; /* Equivalent to pl-3 */
+  color: #6b7280; /* text-gray-400 */
+  height: 1.25rem;
+  width: 1.25rem;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.5rem 0.75rem; /* py-2 px-3 */
+  padding-left: 2.5rem; /* To make space for the icon */
+  border-radius: 0.375rem; /* rounded-md */
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+  font-size: 0.875rem; /* text-sm */
+  color: #1f2937; /* text-gray-900 */
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #2563eb; /* focus:border-indigo-500 */
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2); /* focus:ring-indigo-200, focus:ring-opacity-50 */
+}
+
+/* Ensure empty state messages are consistent */
+.empty-state {
+  text-align: center;
+  padding: 2rem 0;
+  color: #6b7280;
+}
+
+.empty-state-text {
+  font-size: 1rem;
+}
+
+/* Pagination container */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-top: 1.5rem; /* Adjust as needed */
+  gap: 1rem;
+}
+
+.pagination-button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem; /* Equivalent to rounded-md */
+  border: 1px solid #d1d5db; /* border-gray-300 */
+  background-color: #ffffff; /* bg-white */
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 500; /* font-medium */
+  color: #374151; /* text-gray-700 */
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); /* shadow-sm */
+  cursor: pointer;
+  transition: background-color 0.2s ease-in-out;
+}
+
+.pagination-button:hover:not(:disabled) {
+  background-color: #f3f4f6; /* hover:bg-gray-50 */
+}
+
+.pagination-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.pagination-button svg {
+  margin-right: 0.5rem;
+  margin-left: -0.125rem;
+  height: 1.25rem;
+  width: 1.25rem;
+  color: #6b7280; /* text-gray-400 */
+}
+
+.pagination-button:last-child svg {
+  margin-right: -0.125rem;
+  margin-left: 0.5rem;
+}
+
+.pagination-info {
+  font-size: 0.875rem; /* text-sm */
+  color: #6b7280; /* text-gray-700 */
+}

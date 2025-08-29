@@ -1679,8 +1679,8 @@ const EventDashboard = () => {
 
   const handleDeleteAssignment = async (assignmentId) => {
     if (window.confirm("Are you sure? This will remove the assignment and deduct points.")) {
-      try {
-        await axios.delete(`https://facultypointsportal.onrender.com/delete-role-assignment`, { data: { assignment_id: assignmentId, deduct_points: true } });
+      try { const deduct = window.confirm("Do you also want to deduct points from teacher assigned to this role?");                                                                                                                                                                                                  
+        await axios.delete(`https://facultypointsportal.onrender.com/delete-role-assignment`, { data: { assignment_id: assignmentId, deduct_points: deduct } });
         await fetchAllData();
       } catch (error) { console.error("Error removing assignment:", error); alert(error.response?.data?.error || "An error occurred"); }
     }

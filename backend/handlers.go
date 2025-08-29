@@ -853,6 +853,93 @@ func GetRoleAssignments(c *gin.Context) {
 }
 
 // DeleteEvent is updated to handle custom points for deduction.
+// func DeleteEvent(c *gin.Context) {
+// 	type DeleteEventRequest struct {
+// 		EventID      string `json:"event_id" binding:"required"`
+// 		DeductPoints bool   `json:"deduct_points"`
+// 	}
+
+// 	var req DeleteEventRequest
+// 	if err := c.ShouldBindJSON(&req); err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
+// 		return
+// 	}
+
+// 	eventID, err := primitive.ObjectIDFromHex(req.EventID)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event ID format"})
+// 		return
+// 	}
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
+// 	defer cancel()
+
+// 	eventCollection := db.Collection(eventCollection)
+// 	var event Event
+// 	err = eventCollection.FindOne(ctx, bson.M{"_id": eventID}).Decode(&event)
+// 	if err != nil {
+// 		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+// 		return
+// 	}
+
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+// 	if req.DeductPoints {
+// 		// Find all assignments for the event
+// 		cursor, err := assignmentCollection.Find(ctx, bson.M{"event_id": eventID})
+// 		if err != nil {
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not retrieve assignments for point deduction"})
+// 			return
+// 		}
+// 		var assignmentsToDelete []Assignment
+// 		if err = cursor.All(ctx, &assignmentsToDelete); err != nil {
+// 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Could not decode assignments for point deduction"})
+// 			return
+// 		}
+
+// 		// Deduct points for each assignment
+// 		for _, assignment := range assignmentsToDelete {
+// 			var pointsToDeduct int
+// 			if assignment.PointsAwarded != nil {
+// 				pointsToDeduct = *assignment.PointsAwarded
+// 			} else {
+// 				var role Role
+// 				err := db.Collection(roleCollection).FindOne(ctx, bson.M{"_id": assignment.RoleID}).Decode(&role)
+// 				if err == nil { // If role found, get points
+// 					pointsToDeduct = role.Point
+// 				}
+// 			}
+
+// 			if pointsToDeduct != 0 {
+// 				_, _ = db.Collection(teacherCollection).UpdateOne(ctx, bson.M{"_id": assignment.TeacherID}, bson.M{"$inc": bson.M{"point": -pointsToDeduct}})
+// 			}
+// 		}
+// 	}
+
+// 	// Delete all assignments, roles, and finally the event
+// 	_, err = assignmentCollection.DeleteMany(ctx, bson.M{"event_id": eventID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete assignments for the event"})
+// 		return
+// 	}
+
+// 	_, err = db.Collection(roleCollection).DeleteMany(ctx, bson.M{"event_id": eventID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete roles for the event"})
+// 		return
+// 	}
+
+// 	_, err = eventCollection.DeleteOne(ctx, bson.M{"_id": eventID})
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete the event"})
+// 		return
+// 	}
+
+// 	c.JSON(http.StatusOK, gin.H{
+// 		"message":         "Event and all associated data deleted successfully",
+// 		"deducted_points": req.DeductPoints,
+// 		"event_name":      event.Name,
+// 	})
+// }
 func DeleteEvent(c *gin.Context) {
 	type DeleteEventRequest struct {
 		EventID      string `json:"event_id" binding:"required"`
@@ -883,6 +970,8 @@ func DeleteEvent(c *gin.Context) {
 	}
 
 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+	notificationCollection := db.Collection("notifications") // Add this line
+
 	if req.DeductPoints {
 		// Find all assignments for the event
 		cursor, err := assignmentCollection.Find(ctx, bson.M{"event_id": eventID})
@@ -915,7 +1004,7 @@ func DeleteEvent(c *gin.Context) {
 		}
 	}
 
-	// Delete all assignments, roles, and finally the event
+	// Delete all assignments, roles, notifications, and finally the event
 	_, err = assignmentCollection.DeleteMany(ctx, bson.M{"event_id": eventID})
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete assignments for the event"})
@@ -926,6 +1015,13 @@ func DeleteEvent(c *gin.Context) {
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete roles for the event"})
 		return
+	}
+
+	// NEW: Delete all notifications associated with this event
+	_, err = notificationCollection.DeleteMany(ctx, bson.M{"event_id": eventID})
+	if err != nil {
+		fmt.Printf("Warning: Failed to delete notifications for event %s: %v\n", eventID.Hex(), err)
+		// This is a warning, not a critical error, so we continue.
 	}
 
 	_, err = eventCollection.DeleteOne(ctx, bson.M{"_id": eventID})
@@ -940,7 +1036,6 @@ func DeleteEvent(c *gin.Context) {
 		"event_name":      event.Name,
 	})
 }
-
 func GetRolesByEventID(c *gin.Context) {
 	eventID := c.Param("id")
 	objectID, err := primitive.ObjectIDFromHex(eventID)

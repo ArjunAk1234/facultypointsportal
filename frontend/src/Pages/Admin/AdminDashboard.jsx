@@ -858,6 +858,8 @@ const AdminDashboard = () => {
     // Create a new workbook
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, eventDetailsSheet, "EventDetails");
+    eventDetailsSheet["B2"].t = "s"; // Start Date
+    eventDetailsSheet["B4"].t = "s"; // End Date
     XLSX.utils.book_append_sheet(wb, rolesSheet, "Roles");
 
     // Trigger the download

@@ -1892,30 +1892,47 @@ func CreateEventFromExcel(c *gin.Context) {
 	// endDate, _ := excelFile.GetCellValue("EventDetails", "B4")
 	// endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
 	// description, _ := excelFile.GetCellValue("EventDetails", "B6")
-		// --- 1. Parse and Create the Event ---
-	eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
-	startDateRaw, _ := excelFile.GetCellValue("EventDetails", "B2")
-	startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
-	endDateRaw, _ := excelFile.GetCellValue("EventDetails", "B4")
-	endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
-	description, _ := excelFile.GetCellValue("EventDetails", "B6")
+	
+	
+// --- 1. Parse and Create the Event ---
+eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
+startDateRaw, _ := excelFile.GetCellValue("EventDetails", "B2")
+startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
+endDateRaw, _ := excelFile.GetCellValue("EventDetails", "B4")
+endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
+description, _ := excelFile.GetCellValue("EventDetails", "B6")
 
-	// ✅ Helper: convert DD-MM-YY or DD-MM-YYYY → YYYY-MM-DD
-	formatDate := func(dateStr string) string {
-		if dateStr == "" {
-			return ""
-		}
-		layouts := []string{"02-01-06", "02-01-2006", "2-1-06", "2-1-2006"}
-		for _, layout := range layouts {
-			if t, err := time.Parse(layout, dateStr); err == nil {
-				return t.Format("2006-01-02")
-			}
-		}
-		return dateStr
+// ✅ Helper: normalize Excel date formats to YYYY-MM-DD
+formatDate := func(dateStr string) string {
+	if dateStr == "" {
+		return ""
 	}
 
-	startDate := formatDate(startDateRaw)
-	endDate := formatDate(endDateRaw)
+	// Trim spaces
+	dateStr = strings.TrimSpace(dateStr)
+
+	// Case 1: Excel date serial (e.g., "45567")
+	if serial, err := strconv.ParseFloat(dateStr, 64); err == nil {
+		if t, err := excelize.ExcelDateToTime(serial, false); err == nil {
+			return t.Format("2006-01-02")
+		}
+	}
+
+	// Case 2: Common text formats
+	layouts := []string{"02-01-06", "02-01-2006", "2-1-06", "2-1-2006", "2006-01-02"}
+	for _, layout := range layouts {
+		if t, err := time.Parse(layout, dateStr); err == nil {
+			return t.Format("2006-01-02")
+		}
+	}
+
+	// Fallback: return unchanged
+	return dateStr
+}
+
+// Apply to both start and end dates
+startDate := formatDate(startDateRaw)
+endDate := formatDate(endDateRaw)
 
 	if eventName == "" || startDate == "" || startTime == "" || endDate == "" || endTime == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled."})

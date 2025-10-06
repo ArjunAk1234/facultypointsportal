@@ -1908,31 +1908,31 @@ formatDate := func(dateStr string) string {
 		return ""
 	}
 
-	// Trim spaces
 	dateStr = strings.TrimSpace(dateStr)
 
-	// Case 1: Excel date serial (e.g., "45567")
+	// Handle Excel serial dates (numeric values like "45875")
 	if serial, err := strconv.ParseFloat(dateStr, 64); err == nil {
 		if t, err := excelize.ExcelDateToTime(serial, false); err == nil {
-			return t.Format("2006-01-02")
+			return t.Format("2006-01-02") // ✅ YYYY-MM-DD
 		}
 	}
 
-	// Case 2: Common text formats
-	layouts := []string{"02-01-06", "02-01-2006", "2-1-06", "2-1-2006", "2006-01-02"}
+	// Handle common text formats (DD-MM-YY or DD-MM-YYYY)
+	layouts := []string{"02-01-06", "02-01-2006", "2-1-06", "2-1-2006"}
 	for _, layout := range layouts {
 		if t, err := time.Parse(layout, dateStr); err == nil {
-			return t.Format("2006-01-02")
+			return t.Format("2006-01-02") // ✅ YYYY-MM-DD
 		}
 	}
 
-	// Fallback: return unchanged
+	// Fallback: already in correct format or unrecognized
 	return dateStr
 }
 
-// Apply to both start and end dates
+// ✅ Apply to both start and end dates
 startDate := formatDate(startDateRaw)
 endDate := formatDate(endDateRaw)
+
 
 	if eventName == "" || startDate == "" || startTime == "" || endDate == "" || endTime == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled."})

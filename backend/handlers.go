@@ -1867,6 +1867,31 @@ func GetFacultyDashboard(c *gin.Context) {
 //
 // CreateEventFromExcel handles creating an event, its roles, and pre-assigning single or multiple teachers
 // to roles based on the Excel file format.
+
+func parseAndFormatDate(dateStr string) (string, error) {
+	// Define common date layouts that Excel might output
+	layouts := []string{
+		"2006-01-02",          // YYYY-MM-DD
+		"02-01-2006",          // DD-MM-YYYY
+		"01/02/2006",          // MM/DD/YYYY
+		"02/01/2006",          // DD/MM/YYYY
+		"2006/01/02",          // YYYY/MM/DD
+		"02-Jan-2006",         // DD-Mon-YYYY (e.g., 25-Oct-2026)
+		"2-1-06",              // D-M-YY (e.g., 25-10-26) - assuming current century for '06'
+		"02-01-06",            // DD-MM-YY
+		"01/02/06",            // MM/DD/YY
+	}
+
+	for _, layout := range layouts {
+		t, err := time.Parse(layout, dateStr)
+		if err == nil {
+			// Successfully parsed, now format to YYYY-MM-DD
+			return t.Format("2006-01-02"), nil
+		}
+	}
+	return "", fmt.Errorf("could not parse date string '%s' with any known layout", dateStr)
+}
+
 func CreateEventFromExcel(c *gin.Context) {
 	file, err := c.FormFile("excel_file")
 	if err != nil {
@@ -1887,54 +1912,33 @@ func CreateEventFromExcel(c *gin.Context) {
 		return
 	}
 
-	// // --- 1. Parse and Create the Event ---
+	// --- 1. Parse and Create the Event ---
 	// eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
 	// startDate, _ := excelFile.GetCellValue("EventDetails", "B2")
 	// startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
 	// endDate, _ := excelFile.GetCellValue("EventDetails", "B4")
 	// endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
 	// description, _ := excelFile.GetCellValue("EventDetails", "B6")
-	
-	
-// --- 1. Parse and Create the Event ---
-eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
-startDateRaw, _ := excelFile.GetCellValue("EventDetails", "B2")
-startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
-endDateRaw, _ := excelFile.GetCellValue("EventDetails", "B4")
-endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
-description, _ := excelFile.GetCellValue("EventDetails", "B6")
+	eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
+	rawStartDate, _ := excelFile.GetCellValue("EventDetails", "B2")
+	startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
+	rawEndDate, _ := excelFile.GetCellValue("EventDetails", "B4")
+	endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
+	description, _ := excelFile.GetCellValue("EventDetails", "B6")
 
-// ✅ Helper: normalize Excel date formats to YYYY-MM-DD
-formatDate := func(dateStr string) string {
-	if dateStr == "" {
-		return ""
+	// NEW: Parse and format startDate
+	formattedStartDate, err := parseAndFormatDate(rawStartDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid start date format: %v", err)})
+		return
 	}
 
-	dateStr = strings.TrimSpace(dateStr)
-
-	// Handle Excel serial dates (numeric values like "45875")
-	if serial, err := strconv.ParseFloat(dateStr, 64); err == nil {
-		if t, err := excelize.ExcelDateToTime(serial, false); err == nil {
-			return t.Format("2006-01-02") // ✅ YYYY-MM-DD
-		}
+	// NEW: Parse and format endDate
+	formattedEndDate, err := parseAndFormatDate(rawEndDate)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid end date format: %v", err)})
+		return
 	}
-
-	// Handle common text formats (DD-MM-YY or DD-MM-YYYY)
-	layouts := []string{"02-01-06", "02-01-2006", "2-1-06", "2-1-2006"}
-	for _, layout := range layouts {
-		if t, err := time.Parse(layout, dateStr); err == nil {
-			return t.Format("2006-01-02") // ✅ YYYY-MM-DD
-		}
-	}
-
-	// Fallback: already in correct format or unrecognized
-	return dateStr
-}
-
-// ✅ Apply to both start and end dates
-startDate := formatDate(startDateRaw)
-endDate := formatDate(endDateRaw)
-
 
 	if eventName == "" || startDate == "" || startTime == "" || endDate == "" || endTime == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled."})
@@ -1944,9 +1948,9 @@ endDate := formatDate(endDateRaw)
 	event := Event{
 		ID:               primitive.NewObjectID(),
 		Name:             eventName,
-		StartDate:        startDate,
+		StartDate:        formattedStartDate,
 		StartTime:        startTime,
-		EndDate:          endDate,
+		EndDate:          formattedEndDate,
 		EndTime:          endTime,
 		Description:      description,
 		Roles:            []RoleRef{},

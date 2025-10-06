@@ -1880,6 +1880,7 @@ func parseAndFormatDate(dateStr string) (string, error) {
 		"2-1-06",              // D-M-YY (e.g., 25-10-26) - assuming current century for '06'
 		"02-01-06",            // DD-MM-YY
 		"01/02/06",            // MM/DD/YY
+		"01-02-06",            // MM-DD-YY  <--- ADD THIS LAYOUT
 	}
 
 	for _, layout := range layouts {

@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strconv"
 	"time"
-	"strings"
+
 	
 
 	"github.com/gin-gonic/gin"
@@ -1940,8 +1940,12 @@ func CreateEventFromExcel(c *gin.Context) {
 		return
 	}
 
-	if eventName == "" || startDate == "" || startTime == "" || endDate == "" || endTime == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled."})
+	// if eventName == "" || startDate == "" || startTime == "" || endDate == "" || endTime == "" {
+	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled."})
+	// 	return
+	// }
+	if eventName == "" || formattedStartDate == "" || startTime == "" || formattedEndDate == "" || endTime == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled and dates are valid."})
 		return
 	}
 

@@ -1885,13 +1885,37 @@ func CreateEventFromExcel(c *gin.Context) {
 		return
 	}
 
-	// --- 1. Parse and Create the Event ---
+	// // --- 1. Parse and Create the Event ---
+	// eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
+	// startDate, _ := excelFile.GetCellValue("EventDetails", "B2")
+	// startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
+	// endDate, _ := excelFile.GetCellValue("EventDetails", "B4")
+	// endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
+	// description, _ := excelFile.GetCellValue("EventDetails", "B6")
+		// --- 1. Parse and Create the Event ---
 	eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
-	startDate, _ := excelFile.GetCellValue("EventDetails", "B2")
+	startDateRaw, _ := excelFile.GetCellValue("EventDetails", "B2")
 	startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
-	endDate, _ := excelFile.GetCellValue("EventDetails", "B4")
+	endDateRaw, _ := excelFile.GetCellValue("EventDetails", "B4")
 	endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
 	description, _ := excelFile.GetCellValue("EventDetails", "B6")
+
+	// ✅ Helper: convert DD-MM-YY or DD-MM-YYYY → YYYY-MM-DD
+	formatDate := func(dateStr string) string {
+		if dateStr == "" {
+			return ""
+		}
+		layouts := []string{"02-01-06", "02-01-2006", "2-1-06", "2-1-2006"}
+		for _, layout := range layouts {
+			if t, err := time.Parse(layout, dateStr); err == nil {
+				return t.Format("2006-01-02")
+			}
+		}
+		return dateStr
+	}
+
+	startDate := formatDate(startDateRaw)
+	endDate := formatDate(endDateRaw)
 
 	if eventName == "" || startDate == "" || startTime == "" || endDate == "" || endTime == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled."})

@@ -158,6 +158,129 @@ func CreateEvent(c *gin.Context) {
 	c.JSON(http.StatusOK, event)
 }
 
+func EditRole(c *gin.Context) {
+	// 1. Get roleid from URL parameter
+	roleIDParam := c.Param("roleid1")
+
+	// 2. Validate roleIDParam
+	oid, err := primitive.ObjectIDFromHex(roleIDParam)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid role ID"})
+		return
+	}
+
+	// 3. Parse Request Body into a map for dynamic updates
+	var reqBody map[string]interface{}
+	if err := c.ShouldBindJSON(&reqBody); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 4. Setup context for database operations
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	roleCollection := db.Collection("roles")
+	eventCollection := db.Collection("events")
+
+	updateFields := bson.M{}
+	var newRoleName string
+	nameWasUpdated := false
+
+	// Dynamically build the updateFields map based on provided JSON
+	if name, ok := reqBody["name"]; ok {
+		if n, isString := name.(string); isString {
+			updateFields["name"] = n
+			newRoleName = n // Store the new name for potential event update
+			nameWasUpdated = true
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Name must be a string"})
+			return
+		}
+	}
+	if description, ok := reqBody["description"]; ok {
+		if d, isString := description.(string); isString {
+			updateFields["description"] = d
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Description must be a string"})
+			return
+		}
+	}
+	// For Point and HeadCount, assume JSON numbers are float64 and convert to int.
+	// This also correctly handles if 0 is explicitly provided.
+	if point, ok := reqBody["point"]; ok {
+		if p, isFloat64 := point.(float64); isFloat64 {
+			updateFields["point"] = int(p)
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Point must be an integer"})
+			return
+		}
+	}
+	if headCount, ok := reqBody["head_count"]; ok {
+		if hc, isFloat64 := headCount.(float64); isFloat64 {
+			updateFields["head_count"] = int(hc)
+		} else {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "HeadCount must be an integer"})
+			return
+		}
+	}
+
+	if len(updateFields) == 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No valid fields to update provided"})
+		return
+	}
+
+	updateDoc := bson.M{"$set": updateFields}
+
+	// 5. Execute the update operation on the role collection
+	result, err := roleCollection.UpdateOne(ctx, bson.M{"_id": oid}, updateDoc)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update role: " + err.Error()})
+		return
+	}
+
+	if result.ModifiedCount == 0 {
+		// If no document was modified, it means the role was not found or the update data was identical.
+		c.JSON(http.StatusNotFound, gin.H{"error": "Role not found or no changes made"})
+		return
+	}
+
+	// 6. If the role's name was updated, synchronize with the associated event
+	if nameWasUpdated {
+		var existingRole Role
+		// Retrieve the existing role to get its EventID
+		err = roleCollection.FindOne(ctx, bson.M{"_id": oid}).Decode(&existingRole)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve existing role for event update: " + err.Error()})
+			return
+		}
+
+		// Update the 'name' field within the 'roles' array of the associated event
+		updateEventRoleName := bson.M{
+			"$set": bson.M{"roles.$[elem].name": newRoleName},
+		}
+		arrayFilters := options.ArrayFilters{
+			Filters: []interface{}{bson.M{"elem.id": oid}}, // Match the element in the array by its 'id' field
+		}
+		opts := options.Update().SetArrayFilters(arrayFilters)
+
+		_, err = eventCollection.UpdateOne(ctx, bson.M{"_id": existingRole.EventID}, updateEventRoleName, opts)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update event role name: " + err.Error()})
+			return
+		}
+	}
+
+	// 7. Fetch the updated role to return it in the response
+	var updatedRoleDoc Role
+	err = roleCollection.FindOne(ctx, bson.M{"_id": oid}).Decode(&updatedRoleDoc)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve updated role: " + err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, updatedRoleDoc)
+}
 func ListEvents(c *gin.Context) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()

@@ -2238,7 +2238,7 @@ func CreateEventFromExcel(c *gin.Context) {
 			// This is the first time we see this role name, so create it.
 			roleDescription := getCellValue(row, 1)
 			// HeadCount is now derived from roleHeadCounts, not read from column C (index 2)
-			points, _ := strconv.Atoi(getCellValue(row, 3)) // Points are still read from column D (index 3)
+			points, _ := strconv.Atoi(getCellValue(row, 2)) // Points are still read from column D (index 3)
 
 			newRole := Role{
 				ID:          primitive.NewObjectID(),

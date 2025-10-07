@@ -98,5 +98,8 @@ func main() {
 	r.POST("/events/:eventid/roles/:roleid/auto-assign", AutoAssignLowestPointTeacherToRole)
 
 	r.DELETE("/roles/:id", DeleteRole)
+
+	
+	r.PUT("/editevents/:eventid1/roles/:roleid1", EditRole)
 	r.Run(":" + port)
 }

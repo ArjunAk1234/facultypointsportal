@@ -1893,6 +1893,224 @@ func parseAndFormatDate(dateStr string) (string, error) {
 	return "", fmt.Errorf("could not parse date string '%s' with any known layout", dateStr)
 }
 
+// func CreateEventFromExcel(c *gin.Context) {
+// 	file, err := c.FormFile("excel_file")
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Excel file is required"})
+// 		return
+// 	}
+
+// 	f, err := file.Open()
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to open the uploaded file"})
+// 		return
+// 	}
+// 	defer f.Close()
+
+// 	excelFile, err := excelize.OpenReader(f)
+// 	if err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to read the Excel file"})
+// 		return
+// 	}
+
+// 	// --- 1. Parse and Create the Event ---
+// 	// eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
+// 	// startDate, _ := excelFile.GetCellValue("EventDetails", "B2")
+// 	// startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
+// 	// endDate, _ := excelFile.GetCellValue("EventDetails", "B4")
+// 	// endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
+// 	// description, _ := excelFile.GetCellValue("EventDetails", "B6")
+// 	eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
+// 	rawStartDate, _ := excelFile.GetCellValue("EventDetails", "B2")
+// 	startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
+// 	rawEndDate, _ := excelFile.GetCellValue("EventDetails", "B4")
+// 	endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
+// 	description, _ := excelFile.GetCellValue("EventDetails", "B6")
+
+// 	// NEW: Parse and format startDate
+// 	formattedStartDate, err := parseAndFormatDate(rawStartDate)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid start date format: %v", err)})
+// 		return
+// 	}
+
+// 	// NEW: Parse and format endDate
+// 	formattedEndDate, err := parseAndFormatDate(rawEndDate)
+// 	if err != nil {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid end date format: %v", err)})
+// 		return
+// 	}
+
+// 	// if eventName == "" || startDate == "" || startTime == "" || endDate == "" || endTime == "" {
+// 	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled."})
+// 	// 	return
+// 	// }
+// 	if eventName == "" || formattedStartDate == "" || startTime == "" || formattedEndDate == "" || endTime == "" {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled and dates are valid."})
+// 		return
+// 	}
+
+// 	event := Event{
+// 		ID:               primitive.NewObjectID(),
+// 		Name:             eventName,
+// 		StartDate:        formattedStartDate,
+// 		StartTime:        startTime,
+// 		EndDate:          formattedEndDate,
+// 		EndTime:          endTime,
+// 		Description:      description,
+// 		Roles:            []RoleRef{},
+// 		Assginedteachers: []RoleRef1{},
+// 	}
+// 	event.EventID = event.ID
+
+// 	ctx, cancel := context.WithTimeout(context.Background(), 45*time.Second) // Increased timeout
+// 	defer cancel()
+
+// 	eventCollection := db.Collection(eventCollection)
+// 	if _, err := eventCollection.InsertOne(ctx, event); err != nil {
+// 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create the event in the database"})
+// 		return
+// 	}
+
+// 	// --- 2. Parse Roles and Pre-assign Teachers ---
+// 	rows, err := excelFile.GetRows("Roles")
+// 	if err != nil || len(rows) <= 1 {
+// 		c.JSON(http.StatusCreated, gin.H{
+// 			"message": "Event created successfully without roles (or 'Roles' sheet was empty/missing).",
+// 			"event":   event,
+// 		})
+// 		return
+// 	}
+
+// 	roleCollection := db.Collection(roleCollection)
+// 	teacherCollection := db.Collection(teacherCollection)
+// 	assignmentCollection := db.Collection(teacherAssignmentCollection)
+
+// 	// NEW: Maps to track roles created during this import and their current assignment count
+// 	createdRolesMap := make(map[string]Role)
+// 	assignedCounts := make(map[primitive.ObjectID]int)
+// 	var assignmentResults []string
+
+// 	for i, row := range rows[1:] {
+// 		if len(row) == 0 || row[0] == "" {
+// 			continue // Skip empty rows
+// 		}
+
+// 		getCellValue := func(r []string, index int) string {
+// 			if len(r) > index {
+// 				return r[index]
+// 			}
+// 			return ""
+// 		}
+
+// 		roleName := getCellValue(row, 0)
+// 		teacherName := getCellValue(row, 4)
+// 		teacherDept := getCellValue(row, 5)
+
+// 		var currentRole Role
+// 		var ok bool
+
+// 		// NEW: Check if we have already processed this role in a previous row
+// 		if currentRole, ok = createdRolesMap[roleName]; !ok {
+// 			// This is the first time we see this role name, so create it.
+// 			roleDescription := getCellValue(row, 1)
+// 			headCount, _ := strconv.Atoi(getCellValue(row, 2))
+// 			points, _ := strconv.Atoi(getCellValue(row, 3))
+
+// 			newRole := Role{
+// 				ID:          primitive.NewObjectID(),
+// 				EventID:     event.ID,
+// 				EventName:   event.Name,
+// 				Name:        roleName,
+// 				Description: roleDescription,
+// 				HeadCount:   headCount,
+// 				Point:       points,
+// 			}
+// 			newRole.RoleID = newRole.ID
+
+// 			if _, err := roleCollection.InsertOne(ctx, newRole); err != nil {
+// 				assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: FAILED to create role '%s'. Skipping.", i+2, roleName))
+// 				continue
+// 			}
+
+// 			// Store the newly created role in our map for future rows
+// 			createdRolesMap[roleName] = newRole
+// 			currentRole = newRole
+// 			assignedCounts[currentRole.ID] = 0 // Initialize assignment count
+// 			event.Roles = append(event.Roles, RoleRef{ID: currentRole.ID, Name: currentRole.Name})
+// 		}
+
+// 		// --- Proceed with Teacher Assignment ---
+// 		if teacherName != "" && teacherDept != "" {
+// 			// NEW: Check if the role's head count has been reached
+// 			if assignedCounts[currentRole.ID] >= currentRole.HeadCount {
+// 				assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: SKIPPED. Head count for role '%s' (%d) reached. Cannot assign '%s'.", i+2, roleName, currentRole.HeadCount, teacherName))
+// 				continue
+// 			}
+
+// 			var teacherToAssign Teacher
+// 			filter := bson.M{"name": teacherName, "departmentname": teacherDept}
+// 			err := teacherCollection.FindOne(ctx, filter).Decode(&teacherToAssign)
+
+// 			if err != nil {
+// 				if err == mongo.ErrNoDocuments {
+// 					assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: Teacher '%s' from '%s' not found. Role '%s' created but this assignment was skipped.", i+2, teacherName, teacherDept, roleName))
+// 				} else {
+// 					assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: DB error finding teacher '%s': %v", i+2, teacherName, err))
+// 				}
+// 				continue
+// 			}
+
+// 			// Teacher found, create the assignment
+// 			assignment := Assignment{
+// 				ID:           primitive.NewObjectID(),
+// 				EventID:      event.ID,
+// 				EventName:    event.Name,
+// 				TeacherID:    teacherToAssign.ID,
+// 				RoleID:       currentRole.ID,
+// 				RoleName:     currentRole.Name,
+// 				TeacherName:  teacherToAssign.Name,
+// 				TeacherEmail: teacherToAssign.Email,
+// 			}
+// 			assignment.AssignmentID = assignment.ID
+
+// 			if _, err := assignmentCollection.InsertOne(ctx, assignment); err != nil {
+// 				assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: FAILED to create assignment for teacher '%s'.", i+2, teacherName))
+// 				continue
+// 			}
+
+// 			_, _ = teacherCollection.UpdateOne(ctx, bson.M{"_id": teacherToAssign.ID}, bson.M{"$inc": bson.M{"point": currentRole.Point}})
+
+// 			event.Assginedteachers = append(event.Assginedteachers, RoleRef1{
+// 				ID:            currentRole.ID,
+// 				RoleName:      currentRole.Name,
+// 				TeacherleName: teacherToAssign.Name,
+// 				Assignment_ID: assignment.ID,
+// 			})
+
+// 			createNotification(teacherToAssign.ID, event.ID, currentRole.ID, assignment.ID, event.Name, currentRole.Name, teacherToAssign.Name)
+
+// 			// NEW: Increment the count for this role
+// 			assignedCounts[currentRole.ID]++
+// 			assignmentResults = append(assignmentResults, fmt.Sprintf("Row %d: SUCCESS. Assigned teacher '%s' to role '%s'. (Assigned %d of %d)", i+2, teacherName, roleName, assignedCounts[currentRole.ID], currentRole.HeadCount))
+// 		}
+// 	}
+
+// 	// --- 3. Finalize Event Update ---
+// 	update := bson.M{"$set": bson.M{"roles": event.Roles, "assginedteachers": event.Assginedteachers}}
+// 	_, err = eventCollection.UpdateOne(ctx, bson.M{"_id": event.ID}, update)
+// 	if err != nil {
+// 		fmt.Printf("Warning: Final event update failed for event ID %s: %v\n", event.ID.Hex(), err)
+// 	}
+
+// 	c.JSON(http.StatusCreated, gin.H{
+// 		"message":        "Event processing from Excel complete.",
+// 		"event_details":  event,
+// 		"assignment_log": assignmentResults,
+// 	})
+// }
+
+
 func CreateEventFromExcel(c *gin.Context) {
 	file, err := c.FormFile("excel_file")
 	if err != nil {
@@ -1914,49 +2132,43 @@ func CreateEventFromExcel(c *gin.Context) {
 	}
 
 	// --- 1. Parse and Create the Event ---
-	// eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
-	// startDate, _ := excelFile.GetCellValue("EventDetails", "B2")
-	// startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
-	// endDate, _ := excelFile.GetCellValue("EventDetails", "B4")
-	// endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
-	// description, _ := excelFile.GetCellValue("EventDetails", "B6")
 	eventName, _ := excelFile.GetCellValue("EventDetails", "B1")
 	rawStartDate, _ := excelFile.GetCellValue("EventDetails", "B2")
-	startTime, _ := excelFile.GetCellValue("EventDetails", "B3")
-	rawEndDate, _ := excelFile.GetCellValue("EventDetails", "B4")
-	endTime, _ := excelFile.GetCellValue("EventDetails", "B5")
-	description, _ := excelFile.GetCellValue("EventDetails", "B6")
+	// StartTime (B3) and EndTime (B5) are no longer read from Excel and will be defaulted.
+	rawEndDate, _ := excelFile.GetCellValue("EventDetails", "B3")
+	description, _ := excelFile.GetCellValue("EventDetails", "B4")
 
-	// NEW: Parse and format startDate
+	// Parse and format startDate
 	formattedStartDate, err := parseAndFormatDate(rawStartDate)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid start date format: %v", err)})
 		return
 	}
 
-	// NEW: Parse and format endDate
+	// Parse and format endDate
 	formattedEndDate, err := parseAndFormatDate(rawEndDate)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid end date format: %v", err)})
 		return
 	}
 
-	// if eventName == "" || startDate == "" || startTime == "" || endDate == "" || endTime == "" {
-	// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled."})
-	// 	return
-	// }
-	if eventName == "" || formattedStartDate == "" || startTime == "" || formattedEndDate == "" || endTime == "" {
+	// Adjusted condition to remove startTime and endTime checks, as they are now defaulted
+	if eventName == "" || formattedStartDate == "" || formattedEndDate == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Event details are incomplete. Ensure cells B1-B6 on the 'EventDetails' sheet are filled and dates are valid."})
 		return
 	}
 
 	event := Event{
-		ID:               primitive.NewObjectID(),
-		Name:             eventName,
-		StartDate:        formattedStartDate,
-		StartTime:        startTime,
-		EndDate:          formattedEndDate,
-		EndTime:          endTime,
+		ID:        primitive.NewObjectID(),
+		Name:      eventName,
+		StartDate: formattedStartDate,
+		// Default StartTime to "00:00" (12 AM)
+		StartTime: "00:00",
+		EndDate:   formattedEndDate,
+		// Default EndTime to "00:00" (as per "00 defaultly" request)
+		// Note: Setting both StartTime and EndTime to "00:00" effectively means the event is considered to be at midnight, with zero duration.
+		// If a full-day event is intended, consider setting EndTime to "23:59".
+		EndTime:          "00:00",
 		Description:      description,
 		Roles:            []RoleRef{},
 		Assginedteachers: []RoleRef1{},
@@ -1982,6 +2194,15 @@ func CreateEventFromExcel(c *gin.Context) {
 		return
 	}
 
+	// NEW: First pass to calculate HeadCount for each role based on occurrences
+	roleHeadCounts := make(map[string]int)
+	for _, row := range rows[1:] {
+		if len(row) > 0 && row[0] != "" {
+			roleName := row[0]
+			roleHeadCounts[roleName]++
+		}
+	}
+
 	roleCollection := db.Collection(roleCollection)
 	teacherCollection := db.Collection(teacherCollection)
 	assignmentCollection := db.Collection(teacherAssignmentCollection)
@@ -2004,8 +2225,10 @@ func CreateEventFromExcel(c *gin.Context) {
 		}
 
 		roleName := getCellValue(row, 0)
-		teacherName := getCellValue(row, 4)
-		teacherDept := getCellValue(row, 5)
+		teacherName := getCellValue(row, 3)
+		teacherDept := getCellValue(row, 4)
+		// teacherName := getCellValue(row, 4)
+		// teacherDept := getCellValue(row, 5)
 
 		var currentRole Role
 		var ok bool
@@ -2014,8 +2237,8 @@ func CreateEventFromExcel(c *gin.Context) {
 		if currentRole, ok = createdRolesMap[roleName]; !ok {
 			// This is the first time we see this role name, so create it.
 			roleDescription := getCellValue(row, 1)
-			headCount, _ := strconv.Atoi(getCellValue(row, 2))
-			points, _ := strconv.Atoi(getCellValue(row, 3))
+			// HeadCount is now derived from roleHeadCounts, not read from column C (index 2)
+			points, _ := strconv.Atoi(getCellValue(row, 3)) // Points are still read from column D (index 3)
 
 			newRole := Role{
 				ID:          primitive.NewObjectID(),
@@ -2023,7 +2246,7 @@ func CreateEventFromExcel(c *gin.Context) {
 				EventName:   event.Name,
 				Name:        roleName,
 				Description: roleDescription,
-				HeadCount:   headCount,
+				HeadCount:   roleHeadCounts[roleName], // HeadCount calculated from occurrences
 				Point:       points,
 			}
 			newRole.RoleID = newRole.ID
